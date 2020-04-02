@@ -1,179 +1,145 @@
 name: cosmos2
 channels:
-  - conda-forge
-  - anaconda
-  - defaults
+- bokeh
+- anaconda
+- cbetters
+- conda-forge
+- defaults
 dependencies:
-  - asn1crypto=0.24.0
-  - astroid=1.6.1
-  - attrs=17.4.0
-  - backports=1.0
-  - backports.functools_lru_cache=1.5
-  - backports.lzma=0.0.8
-  - backports.shutil_get_terminal_size=1.0.0
-  - backports_abc=0.5
-  - blas=1.1
-  - bleach=2.1.3
-  - bokeh=0.12.14
-  - bzip2=1.0.6
-  - ca-certificates=2018.1.18
-  - certifi=2018.1.18
-  - cffi=1.11.5
-  - chardet=3.0.4
-  - click=6.7
-  - cloudpickle=0.5.2
-  - configparser=3.5.0
-  - cryptography=2.1.4
-  - cycler=0.10.0
-  - dask=0.17.1
-  - dask-core=0.17.1
-  - dbus=1.12.2
-  - decorator=4.0.11
-  - distributed=1.21.2
-  - entrypoints=0.2.3
-  - enum34=1.1.6
-  - expat=2.2.5
-  - ffmpeg=3.4.2
-  - fontconfig=2.12.6
-  - freetype=2.8.1
-  - funcsigs=1.0.2
-  - functools32=3.2.3.2
-  - future=0.16.0
-  - futures=3.2.0
-  - glib=2.53.6
-  - gmp=6.1.2
-  - gnutls=3.5.17
-  - gst-plugins-base=1.12.4
-  - gstreamer=1.12.4
-  - heapdict=1.0.0
-  - html5lib=1.0.1
-  - icu=58.2
-  - idna=2.6
-  - imageio=2.1.2
-  - intel-openmp=2018.0.0
-  - ipaddress=1.0.18
-  - ipykernel=4.8.2
-  - ipython=5.5.0
-  - ipython_genutils=0.2.0
-  - ipywidgets=7.1.2
-  - isort=4.3.4
-  - jedi=0.11.1
-  - jinja2=2.10
-  - jpeg=9b
-  - jsonschema=2.6.0
-  - jupyter_client=5.2.3
-  - jupyter_core=4.4.0
-  - kiwisolver=1.0.1
-  - lazy-object-proxy=1.3.1
-  - libffi=3.2.1
-  - libgcc-ng=7.2.0
-  - libgfortran=3.0.0
-  - libgfortran-ng=7.2.0
-  - libiconv=1.15
-  - libidn11=1.33
-  - libpng=1.6.34
-  - libsodium=1.0.15
-  - libstdcxx-ng=7.2.0
-  - libtiff=4.0.9
-  - libxcb=1.12
-  - libxml2=2.9.7
-  - line_profiler=2.1.2
-  - locket=0.2.0
-  - markupsafe=1.0
-  - matplotlib=2.2.0
-  - mistune=0.8.3
-  - mkl=2018.0.1
-  - moviepy=0.2.3.2
-  - msgpack-python=0.5.5
-  - nbconvert=5.3.1
-  - nbformat=4.4.0
-  - ncurses=5.9
-  - nettle=3.3
-  - networkx=2.0
-  - notebook=5.4.0
-  - numpy=1.14.2
-  - olefile=0.45.1
-  - openblas=0.2.20
-  - openssl=1.0.2n
-  - packaging=17.1
-  - pandas=0.22.0
-  - pandoc=2.1.2
-  - pandocfilters=1.4.1
-  - parso=0.1.1
-  - partd=0.3.8
-  - path.py=11.0.1
-  - pathlib2=2.3.0
-  - pcre=8.41
-  - peakutils=1.1.1
-  - pep8=1.7.1
-  - pexpect=4.4.0
-  - phantomjs=2.1.1
-  - pickleshare=0.7.4
-  - pillow=5.0.0
-  - pims=0.4.1
-  - pip=9.0.1
-  - plotly=2.4.1
-  - pluggy=0.6.0
-  - prompt_toolkit=1.0.15
-  - psutil=5.4.3
-  - ptyprocess=0.5.2
-  - py=1.5.2
-  - pycparser=2.18
-  - pygments=2.2.0
-  - pylint=1.8.2
-  - pyopenssl=17.5.0
-  - pyparsing=2.2.0
-  - pyqt=5.6.0
-  - pysocks=1.6.8
-  - pytest=3.4.2
-  - python=2.7.14
-  - python-dateutil=2.6.1
-  - pytz=2018.3
-  - pywavelets=0.5.2
-  - pyyaml=3.12
-  - pyzmq=17.0.0
-  - qt=5.6.2
-  - readline=7.0
-  - requests=2.18.4
-  - scandir=1.7
-  - scikit-image=0.13.1
-  - scikit-learn=0.19.1
-  - scipy=1.0.0
-  - selenium=3.9.0
-  - send2trash=1.5.0
-  - setuptools=38.5.2
-  - simplegeneric=0.8.1
-  - singledispatch=3.4.0.3
-  - sip=4.18.1
-  - six=1.11.0
-  - slicerator=0.9.8
-  - sortedcontainers=1.5.9
-  - sqlite=3.20.1
-  - ssl_match_hostname=3.5.0.1
-  - subprocess32=3.2.7
-  - tblib=1.3.2
-  - terminado=0.8.1
-  - testpath=0.3.1
-  - tifffile=0.14.0
-  - tk=8.6.7
-  - toolz=0.9.0
-  - tornado=4.5.3
-  - tqdm=4.11.2
-  - traitlets=4.3.2
-  - urllib3=1.22
-  - wcwidth=0.1.7
-  - webencodings=0.5
-  - wheel=0.30.0
-  - widgetsnbextension=3.1.4
-  - wrapt=1.10.11
-  - x264=20131217
-  - xz=5.2.3
-  - yaml=0.1.7
-  - zeromq=4.2.3
-  - zict=0.1.3
-  - zlib=1.2.11
-  - pip:
-    - mccabe==0.6.1
-    - pyprof2calltree==1.4.3
-prefix: /home/user/anaconda3/envs/cosmos2
-
+- attrs=17.4.0  
+- libtiff
+- tk
+- bzip2
+- ca-certificates=2017.11.5
+- ffmpeg
+- fontconfig
+- freetype
+- icu
+- jpeg
+- libffi
+- libsodium
+- libxml2
+- openssl
+- phantomjs
+- xz
+- zeromq
+- zlib
+- mkl
+- libpng
+- sqlite
+- libiconv
+- bkcharts
+- python=2.7.14
+- pip>=18.0
+- pip:
+  - pluggy==0.6.0
+  - py==1.5.2
+  - pytest==3.4.2
+  - selenium
+  - peakutils==1.0.3
+  - asn1crypto==0.22.0
+  - astroid==1.5.3
+  - bleach==2.0.0
+  - cffi==1.11.2
+  - chardet==3.0.4
+  - cryptography==2.1.4
+  - decorator==4.0.11
+  - entrypoints==0.2.3
+  - future==0.16.0
+  - html5lib==1.0.1
+  - idna==2.6
+  - imageio==2.1.2
+  - ipykernel==4.7.0
+  - ipython==5.9.0
+  - ipython_genutils==0.2.0
+  - ipywidgets==7.1.0
+  - isort==4.2.15
+  - jedi==0.10.2
+  - jinja2==2.10
+  - jsonschema==2.6.0
+  - jupyter_client==5.2.1
+  - jupyter_core==4.4.0
+  - jupyterlab==0.31.12
+  - jupyterlab_launcher==0.10.5
+  - lazy-object-proxy==1.3.1
+  - line_profiler==2.1.2
+  - markupsafe==1.1.1
+  - mccabe==0.6.1
+  - mistune==0.8.3
+  - moviepy==0.2.3.2
+  - nbconvert==5.3.1
+  - nbformat==4.4.0
+  - notebook==5.2.2
+  - olefile==0.44
+  - pandoc
+  - pandocfilters
+  - pep8
+  - pexpect
+  - pickleshare
+  - pillow
+  - pims
+  - plotly==2.2.3
+  - prompt_toolkit==1.0.15
+  - ptyprocess==0.5.2
+  - pycparser==2.18
+  - pygments==2.2.0
+  - pylint==1.8.1
+  - pyopenssl==17.4.0
+  - pysocks==1.6.8
+  - python-dateutil==2.6.1
+  - pytz==2017.3
+  - pyzmq==16.0.2
+  - requests==2.18.4
+  - setuptools==38.4.0
+  - simplegeneric==0.8.1
+  - six==1.11.0
+  - slicerator==0.9.8
+  - terminado==0.8.1
+  - testpath==0.3.1
+  - tifffile==0.13.5
+  - tornado==4.5.3
+  - tqdm==4.11.2
+  - traitlets==4.3.2
+  - urllib3==1.22
+  - wcwidth==0.1.7
+  - webencodings==0.5
+  - wheel==0.30.0
+  - widgetsnbextension==3.1.0
+  - wrapt==1.10.11
+  - intel-openmp==2018.0.0
+  - numpy==1.14.0
+  - scipy==1.2.3
+  - bokeh==0.12.6
+  - coverage==4.5.1
+  - cycler==0.10.0
+  - cython==0.26
+  - h5py==2.7.0
+  - hdf5storage==0.1.14
+  - ipyparallel==6.0.2
+  - ipython-genutils==0.2.0
+  - jupyter==1.0.0
+  - jupyter-client==5.2.1
+  - jupyter-console==5.1.0
+  - jupyter-core==4.4.0
+  - jupyterlab-launcher==0.10.5
+  - keras==2.0.8
+  - llvmlite==0.20.0
+  - matplotlib==2.0.2
+  - networkx==1.11
+  - nose2==0.7.4
+  - numba==0.35.0
+  - opencv-python==3.2.0.8
+  - pandas==0.20.3
+  - prompt-toolkit==1.0.15
+  - psutil==5.2.2
+  - pyparsing==2.2.0
+  - pywavelets==0.5.2
+  - pyyaml==3.12
+  - qtconsole==4.3.0
+  - scikit-image==0.13.0
+  - scikit-learn==0.18.2
+  - seaborn==0.8
+  - pycircstat
+  - nose
+  - scikit-posthocs
+  - tensorflow==1.10.0
