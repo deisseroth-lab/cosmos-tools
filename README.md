@@ -11,10 +11,12 @@ Two environments are necessary (one is python2 and one is python3), due to a qui
 
 ###### Then do
 `source activate cosmos3`
+
 `python setup.py develop`
 
 ###### and
 `source activate cosmos2`
+
 `python setup.py develop`
 
 Additionally, the CNMF-E implementation (https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress). Thus, a MATLAB license is required for parts of this codebase.
@@ -27,6 +29,7 @@ or
 `pytest --pdb`
 
 If using Mac OSX, then because of an issue with matplotlib you instead need to do the following:
+
 `conda install python.app`
 then
 `pythonw -m pytest`

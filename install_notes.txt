@@ -1,0 +1,20 @@
+## Distribution
+Use anaconda distribution for setting up python environments.
+continuum.io/downloads
+
+## Installation
+Two environments are necessary (one is python2 and one is python3), due to a quirk in loading certain types of tif stacks in dual_lenslet_crop.py, for which python2 is necessary. Everything else can safely use python3.
+
+> conda env create --file cosmos3requirements.yml -n cosmos3 python=3.5
+> source activate cosmos3 
+> python setup.py develop
+
+Then do:
+
+> conda env create --file cosmos2requirements.yml -n cosmos2 python=2.7
+> source activate cosmos2 
+> python setup.py develop
+
+For linux-64, if the requirements.yml approach does not work, you 
+Should instead be able to use the spec_file:
+> conda create --name cosmos2 --file cosmosdata2_spec_file.txt
