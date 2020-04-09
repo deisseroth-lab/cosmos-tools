@@ -1,5 +1,5 @@
 ### Always use capital letters for variables in a params file. 
-### This file is used for dual_lenslet_crop.py
+### This file is used for import_raw_cosmos_data.py
 
 # DATASETS = [
 #     {'date':'20180108', 'name':'m52_2wk_post_tamox_real_1'},
@@ -285,7 +285,7 @@ DATASETS = [
 
 
   ### IMPORT THE BELOW:
-  {'date': '20190604', 'name': 'cux2m4293_oddball_merged_orig_14_then_reversed_14'},  ### Trimmed in imagej. looks good. Exactly half of the frames are from first session.
+  # {'date': '20190604', 'name': 'cux2m4293_oddball_merged_orig_14_then_reversed_14'},  ### Trimmed in imagej. looks good. Exactly half of the frames are from first session.
   # {'date': '20190605', 'name': 'cux2m5456_lsd_1'}, ## Looks good
   # {'date': '20190605', 'name': 'cux2m4293_lsd_round2_1'}, ## Looks good
   # {'date': '20190604', 'name': 'cux2m5456_saline_1'}, ## Looks good
@@ -297,6 +297,10 @@ DATASETS = [
   # {'date': '20190604', 'name': 'cux2m4293_oddball_merged_orig_14'},
   # {'date': '20190604', 'name': 'cux2m4293_oddball_merged_orig_0_then_reversed_0'},
 
+# For testing
+  #{'date': '20181105', 'name': 'm4201_py3'}
+  #{'date':'20190604', 'name':'cux2m4293_for_testing_cosmostools3'}
+  {'date':'20180328', 'name':'cux2ai148m943_for_testing_cosmostools3'}
 ]
 
 

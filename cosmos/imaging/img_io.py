@@ -33,7 +33,8 @@ def load_raw_data(input_folder, sub_seq=None, scale=1, print_freq=1000):
                        of frames.
     :return: image stack
 
-    NOTE: For importing ome.tif, this only seems to work with python 2.7!!!
+    NOTE: There was originally an issue where, for importing ome.tif,
+          this only seems to work with python 2.7!!!
     """
 
     # Get list of tif files
@@ -50,7 +51,7 @@ def load_raw_data(input_folder, sub_seq=None, scale=1, print_freq=1000):
     if ".ome.tif" in tif_files[0]:
         is_multipage_seq = True
 
-    if len(tif_files) == 1:
+    if len(tif_files) == 1 and not is_multipage_seq:
         print('There is a single tif file (presumably multi-page/bigtiff). ')
         with tifffile.TiffFile(os.path.join(input_folder,
                                tif_files[0])) as tif:
@@ -59,6 +60,7 @@ def load_raw_data(input_folder, sub_seq=None, scale=1, print_freq=1000):
             # stack = tif.asarray()
     else:
         if is_multipage_seq:
+            print('Loading multi-page sequence of ome.tif.')
             tif_order = []
             # Properly order the files
             for ind, tf in enumerate(tif_files):
@@ -77,6 +79,7 @@ def load_raw_data(input_folder, sub_seq=None, scale=1, print_freq=1000):
                     substack = tif.asarray(key=sub_seq)
                     print(substack.shape)
                 if ind == 0:
+                    ### The entire tif stack is actually just loaded from the first filename. Should this not be a loop?
                     stack = substack
                     break
                 else:
@@ -86,6 +89,8 @@ def load_raw_data(input_folder, sub_seq=None, scale=1, print_freq=1000):
             # Deal with subseq.
         else:
             # Read them into a np array (requires holding whole stack in mem!)
+            print('Loading sequence of individual tifs.')
+
             if sub_seq is not None:
                 tif_files = tif_files[sub_seq[0]:sub_seq[-1] + 1]
 

@@ -19,7 +19,15 @@ Two environments are necessary (one is python2 and one is python3), due to a qui
 
 `python setup.py develop`
 
-Additionally, the CNMF-E implementation (https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress). Thus, a MATLAB license is required for parts of this codebase.
+Additionally, the CNMF-E implementation (https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and potentially will be ready by the time you are reading this). Thus, a MATLAB license is required for a subset of this codebase (specifically, it is only necessary for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
+You can download the most up-to-date version of CNMF_E by changing directories to the desired install location, and then running
+
+`git clone https://github.com/zhoupc/CNMF_E.git`
+
+Then, open MATLAB, change to the installation directory, and run
+
+`cnmfe_setup`
+
 
 ## -Testing the code. 
 From the top directory (in environment cosmos3) run:
@@ -36,30 +44,11 @@ then
 
 ## Useful scripts (Last updated 20191201.)
 
-##### -Process two-photon data (i.e. visual stimulus).
-`batch_cnmf_2p.py`
+#### Importing raw data from COSMOS microscope:
 
-##### -Crop dual lenslet ROIs, deal with timing LED, perform cnmfe, and align atlas. This script should be run using cosmos2 environment.
-`dual_lenslet_crop.py`
-###### For the cell extraction in this script to work, you also need to install CNMF_E, found here: https://github.com/zhoupc/CNMF_E
-###### You can do this, for example by going to the desired install location,
-`git clone https://github.com/zhoupc/CNMF_E.git`
-###### Opening matlab, changing to that directory, and
-`cnmfe_setup`
+1) Use `import_raw_cosmos_data.py`, following the directions at the top of that script. This crops the dual-lenslet ROIs, extracts timing information from the synchronization LED, uses CNMF_E to extract neural sources (requires MATLAB), and enables manual atlas alignment.
 
-##### -Intrinsic imaging based alignment.
-`ipynb/intrinsic_imaging_alignment.ipynb`
-
-##### -Adjusting atlas alignment to match intrinsic imaging.
-`scripts/adjust_atlas.py`
-
-##### -Analyzing orientation selective visual grating stimulation.
-`ipynb/COSMOS Visual Analysis.ipynb`, 
-`ipynb/COSMOS Visual Stimulation Figure.ipynb`
-
-##### -Clean up extracted traces, align and merge traces from the different lenslets, and save out an .h5 file containing merged traces, and aligned atlas.
-`ipynb/trace_merge_script.ipynb`
-
+2) Then use the interactive jupyter notebook: `ipynb.trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
 
 Note: in some instances, you may need to setup ipython widgets
 
@@ -70,6 +59,27 @@ Note: in some instances, you may need to setup ipython widgets
 `jupyter nbextension enable --py --sys-prefix widgetsnbextension`
 
 See: https://ipywidgets.readthedocs.io/en/stable/user_install.html
+
+
+#### Importing intrinsic imaging movies for atlas alignment.
+
+1) See `ipynb/intrinsic_imaging_alignment.ipynb`
+
+2) After extracting phase map from step 1, you can manually overlay the phase map with the the image that contains vasculature. This alignment of PM/V1 boundary can then be used to precisely align already-imported COSMOS data, using `scripts/adjust_atlas.py`
+
+
+
+#### Importing two-photon data (i.e. for comparing visual stimulus orientation selectivity)
+
+##### -Process two-photon data (i.e. visual stimulus).
+`batch_cnmf_2p.py`
+
+##### -Analyzing orientation selective visual grating stimulation.
+`ipynb/COSMOS Visual Analysis.ipynb`, 
+`ipynb/COSMOS Visual Stimulation Figure.ipynb`
+
+##### -Clean up extracted traces, align and merge traces from the different lenslets, and save out an .h5 file containing merged traces, and aligned atlas.
+`ipynb/trace_merge_script.ipynb`
 
 ##### -Analyze merged traces.
 `ipynb/trace_analyze_script_ik.ipynb`

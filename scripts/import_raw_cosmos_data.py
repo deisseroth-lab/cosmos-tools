@@ -14,6 +14,18 @@ import cosmos.params.dataset_params as params
 from cosmos.imaging.frame_processor import FrameProcessor
 
 if __name__ == '__main__':
+    ###########################################
+    # 1. CHANGE DATA PATHS IN THIS SCRIPT
+    # 2. ADD FILENAMES TO cosmos/params/dataset_params.PY
+    # 3. CHANGE FLAGS BELOW IN THIS SCRIPT (RUN ONE AT A TIME)
+    # 4. CHOOSE VIRTUAL ENV: 'source activate cosmos2'
+    # 5. RUN SCRIPT WITHOUT ARGUMENTS
+    ##########################################
+	### Set the following four flags sequentially
+    do_select_crop_rois = True    ### Requires manual interaction, runs quickly
+    do_process_stacks = True      ### Takes a medium amount of time to run
+    do_run_cnmfe = True           ### Takes a long time to run
+    do_atlas_align = False        ### Requires manual interaction, runs quickly
 
     workstation = 'cosmosdata'  # 'cosmosdata', 'analysis2'
     if workstation == 'analysis2':
@@ -28,17 +40,7 @@ if __name__ == '__main__':
 
     print(raw_data_dir, processed_data_dir)
 
-    ###########################################
-    # 1. CHANGE PATHS ABOVE
-    # 2. ADD PATHS TO DATASET_PARAMS.PY
-    # 3. CHANGE FLAGS BELOW (RUN ONE AT A TIME)
-    # 4. CHOOSE VENV: 'source activate cosmos2'
-    # 5. RUN SCRIPT WITHOUT ARGUMENTS
-    ##########################################
-    do_select_crop_rois = False
-    do_process_stacks = True
-    do_run_cnmfe = False
-    do_atlas_align = False
+
 
     for i in range(len(params.DATASETS)):
         d = params.DATASETS[i]
@@ -56,7 +58,7 @@ if __name__ == '__main__':
         if do_select_crop_rois:  ###
             f.select_crop_rois()
         if do_process_stacks:
-            f.crop_stack(do_remove_led_frames=False, do_motion_correct=True, LED_buffer=4) #2019.09.24 JK FIXME -- THERE ARE NO LED FRAMES IN THE CURRENT DATAESET FIXME FIXME FIXME FIXME
+            f.crop_stack(do_remove_led_frames=True, do_motion_correct=True, LED_buffer=4, led_std=1.5) # generally set led_std=3
             f.plot_motion()
         if do_run_cnmfe:
             if workstation == 'analysis2':

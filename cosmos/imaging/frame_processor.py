@@ -8,6 +8,7 @@ import peakutils  # can install with conda.
 from subprocess import call
 import scipy.signal
 from scipy.ndimage.filters import gaussian_filter
+import sys
 
 import cosmos.imaging.img_io as iio
 import cosmos.imaging.atlas_registration as reg
@@ -86,7 +87,10 @@ class FrameProcessor:
         output_folder = self._out_path
         while status:
             slices = self.__get_roi(mean_img, self.vid_names, output_folder)
-            status = raw_input('Press enter if ROIs look good. Otherwise say no:')
+            if (sys.version_info > (3, 0)):
+                status = input('Press enter if ROIs look good. Otherwise say no:')
+            else:
+                status = raw_input('Press enter if ROIs look good. Otherwise say no:')
         np.savez(self._roi_coords_file, coords=slices, loc_names=loc_names)
 
         fig = plt.figure()
@@ -101,7 +105,7 @@ class FrameProcessor:
         #     text_file.write(str(slices))
 
     def crop_stack(self, do_remove_led_frames=False, n_frames=None,
-                   do_motion_correct=True, LED_buffer=2):
+                   do_motion_correct=True, LED_buffer=2, led_std=3):
         """
         Loads the crop rois that were saved out using select_crop_rois().
         Loads the raw video. Saves out to a bigtiff file.
@@ -112,6 +116,8 @@ class FrameProcessor:
                     Additionally, will save out a file that contains
                     the LED frame times.
         :param LED_buffer: number of frames before and after LED frame to remove.
+        :param led_std: float how many standard deviations above baseline to use
+                        as threshold for finding an led frame.
 
         :return: Nothing.
         """
@@ -135,10 +141,10 @@ class FrameProcessor:
             avg_trace = np.squeeze(np.mean(np.mean(stack[:, ledx, ledy], 2), 1))
             # Only look at a segment in the middle - in case light was
             # turned off at the beginning or end of acquisition.
-            trace_segment = avg_trace[len(avg_trace)/4:len(avg_trace)/2]
+            trace_segment = avg_trace[int(len(avg_trace)/4):int(len(avg_trace)/2)]
             # threshed_avg = (avg_trace > (np.std(trace_segment)*0.75 + \
             #                              np.percentile(trace_segment, 10))).astype(int)
-            threshed_avg = (avg_trace > (np.std(trace_segment)*2 + \
+            threshed_avg = (avg_trace > (np.std(trace_segment)*led_std + # Changed this from scale=2 on 20190710
                                          np.percentile(trace_segment, 10))).astype(int)
             led_peak_frames = peakutils.indexes(threshed_avg, min_dist=30)
             np.savez(self._led_frame_file, inds=led_peak_frames)
@@ -343,13 +349,14 @@ class FrameProcessor:
                 plt.title(str(crop_ind))
                 plt.suptitle('Targets')
 
+        print('Done saving crops')
         plt.figure()
         plt.plot(shifts.T, alpha=0.5)
         plt.plot(np.mean(shifts, axis=0), 'k')
         plt.ylabel('Pixel shift')
         plt.xlabel('Time [frames]')
         plt.title('Average pixel shift')
-        plt.legend()
+        print('Plotting average shifts.')
         plt.savefig(self._out_path + '/shift_average.pdf')
 
         plt.figure(100)
@@ -569,7 +576,11 @@ class FrameProcessor:
                 plt.title('Check that things look good, and close this window manually.')
                 plt.show()
 
-                text = raw_input('Look good? [y] or [n]')
+                if (sys.version_info > (3, 0)):
+                    text = input('Look good? [y] or [n]')
+                else:
+                    text = raw_input('Look good? [y] or [n]')
+
                 print(text)
                 if text == 'y':
                     break
