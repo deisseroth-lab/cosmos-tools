@@ -44,11 +44,11 @@ then
 
 ## Useful scripts (Last updated 20191201.)
 
-#### Importing raw data from COSMOS microscope:
+### Importing raw data from COSMOS microscope:
 
 1) Use `import_raw_cosmos_data.py`, following the directions at the top of that script. This crops the dual-lenslet ROIs, extracts timing information from the synchronization LED, uses CNMF_E to extract neural sources (requires MATLAB), and enables manual atlas alignment.
 
-2) Then use the interactive jupyter notebook: `ipynb.trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
+2) Then use the interactive jupyter notebook: `ipynb/trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
 
 Note: in some instances, you may need to setup ipython widgets
 
@@ -61,7 +61,7 @@ Note: in some instances, you may need to setup ipython widgets
 See: https://ipywidgets.readthedocs.io/en/stable/user_install.html
 
 
-#### Importing intrinsic imaging movies for atlas alignment.
+### Importing intrinsic imaging movies for atlas alignment.
 
 1) See `ipynb/intrinsic_imaging_alignment.ipynb`
 
@@ -69,7 +69,7 @@ See: https://ipywidgets.readthedocs.io/en/stable/user_install.html
 
 
 
-#### Importing two-photon data (i.e. for comparing visual stimulus orientation selectivity)
+### Importing two-photon data (i.e. for comparing visual stimulus orientation selectivity)
 
 ##### -Process two-photon data (i.e. visual stimulus).
 `batch_cnmf_2p.py`
