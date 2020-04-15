@@ -24,7 +24,9 @@ It is recommended that you use an [Anaconda](https://www.anaconda.com/distributi
 
 ###### Setup CNMF-E package for neural source extraction
 
-The [CNMF-E implementation](https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and may be ready by the time you are reading this). A MATLAB license is thus required for a subset of this codebase (specifically, only for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
+The [CNMF-E implementation](https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and may be ready by the time you are reading this). 
+This package uses the version of CNMF-E from June 27, 2018.
+A MATLAB license is thus required for a subset of this codebase (specifically, only for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
 You can download the most up-to-date version of CNMF_E to your desired install location with
 
 `git clone https://github.com/zhoupc/CNMF_E.git`
@@ -56,7 +58,7 @@ then
 `python setup.py develop`
 
 
-## Useful scripts (Last updated 20191201)
+## Useful scripts (last updated 20200415)
 
 ### Importing raw data from COSMOS microscope:
 
@@ -85,15 +87,15 @@ then
 `ipynb/primary_notebooks/fig_visual_stimulation_two_photon.ipynb`, 
 `ipynb/primary_notebooks/fig_visual_stimulation_cosmos.ipynb`, 
 
-### Analyzing COSMOS traces from lick-to-target task and generate figures:
+### Analyzing COSMOS traces from lick-to-target task and generating figures:
 
-##### -Analyze merged traces.
+#### Analyze merged traces.
 `ipynb/primary_notebooks/trace_analyze_script_ik.ipynb`
 
-##### -Decode behavior from neural activity.
+#### Decode behavior from neural activity.
 `ipynb/primary_notebooks/classification_analysis.ipynb`
 
-##### -Assign neural sources to task-related classes
+#### Assign neural sources to task-related classes
 `ipynb/primary_notebooks/task_class_assignment.ipynb`
 `ipynb/primary_notebooks/fig_cluster_summary_with_mr2`
 
@@ -116,11 +118,17 @@ then
 `ipynb/fig_cluster_summary_SINGLE_TRIAL` 
 
 #### Optics simulations
-`matlab/scripts/trace_analysis_spont.m` (for estimating background and signal photons)
+`matlab/scripts/trace_analysis_spont.m` (for estimating background and signal photons) 
 `matlab/SNR/dof_snr_simulations.m` (for plotting simulations)
+
+## Reference:
+**Please cite this paper when you use COSMOS in your research. Thanks!**
+
+## License
+Copyright 2020 Isaac Kauvar and Tim Machado
 
 
 
 ## General notes:
-To run jupyer notebooks, on a remote computer, go to top directory and run:
+To run jupyter notebooks, on a remote computer, go to top directory and run:
 jupyter notebook --port=5558 --ip=* --no-browser
