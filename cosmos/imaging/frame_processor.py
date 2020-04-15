@@ -483,6 +483,11 @@ class FrameProcessor:
         :return: Saves out keypoints.npz containing aligned atlas and keypoints
         """
         print("Atlas alignment.")
+        if (sys.version_info > (3, 0)):
+            text = input('Press enter to begin quick atlas alignment. Do not worry about precision, this can be refined later: ')
+        else:
+            text = raw_input('Press enter to begin quick atlas alignment. Do not worry about precision, this can be refined later: ')
+
         if os.path.isfile(self._roi_coords_file):
             coord_file = np.load(self._roi_coords_file)
         else:
