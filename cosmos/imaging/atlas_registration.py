@@ -14,6 +14,8 @@ import cosmos.imaging.cell_selection as utils
 import matplotlib.pyplot as plt
 from IPython.core.debugger import set_trace
 
+import warnings
+
 
 def load_atlas():
     """
@@ -174,18 +176,20 @@ def region_name_from_coordinate(xy_coord, tform, atlas, annotations,
     id = atlas[atlas_coords[1], atlas_coords[0]]
     if id == 0:
         annotation = None
+        warnings.warn('Warning: There are likely neuronal sources located outside of the brain, maybe want to go back to  and cull them (i.e. in trace_merge_script.ipynb).')
     else:
         annotation = annotations[str(id)]
 
     if get_parent:
-        child_annotation = annotation
-        for i in range(2):  # Actually the grandparent is the proper level.
-            parent_id = annotation['parent']
-            if parent_id == 0:
-                annotation = None
-            else:
-                annotation = annotations[str(parent_id)]
-                id = parent_id
+        if annotation is not None:
+            child_annotation = annotation
+            for i in range(2):  # Actually the grandparent is the proper level.
+                parent_id = annotation['parent']
+                if parent_id == 0:
+                    annotation = None
+                else:
+                    annotation = annotations[str(parent_id)]
+                    id = parent_id
 
     # Plot
     if do_debug:

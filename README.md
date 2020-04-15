@@ -7,17 +7,14 @@ Two environments are necessary (one is python2 and one is python3), due to a qui
 
 `conda env create --file cosmos3requirements.yml -n cosmos3 python=3.5`
 
-`conda env create --file cosmos2requirements.yml -n cosmos2 python=2.7`
-
 ###### Then do
 `source activate cosmos3`
 
 `python setup.py develop`
 
-###### and
-`source activate cosmos2`
+`conda install -c conda-forge ipywidgets`
 
-`python setup.py develop`
+(For some reason, ipywidgets, which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created. See See: https://ipywidgets.readthedocs.io/en/stable/user_install.html for more information about ipywidgets).
 
 Additionally, the CNMF-E implementation (https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and potentially will be ready by the time you are reading this). Thus, a MATLAB license is required for a subset of this codebase (specifically, it is only necessary for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
 You can download the most up-to-date version of CNMF_E by changing directories to the desired install location, and then running
@@ -27,6 +24,15 @@ You can download the most up-to-date version of CNMF_E by changing directories t
 Then, open MATLAB, change to the installation directory, and run
 
 `cnmfe_setup`
+
+
+
+###### Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with 
+`conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7`
+
+`source activate cosmos2`
+
+`python setup.py develop`
 
 
 ## -Testing the code. 
@@ -48,17 +54,10 @@ then
 
 1) Use `import_raw_cosmos_data.py`, following the directions at the top of that script. This crops the dual-lenslet ROIs, extracts timing information from the synchronization LED, uses CNMF_E to extract neural sources (requires MATLAB), and enables manual atlas alignment.
 
-2) Then use the interactive jupyter notebook: `ipynb/trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
+2) Then use the interactive jupyter notebook: `ipynb/processing_notebooks/trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
 
-Note: in some instances, you may need to setup ipython widgets
+3) You can then run `ipynb/processing_notebooks/quickly_assess_merged_traces.ipynb` to quickly assess the sources and play with the traces. For general analysis, though, move the merged_traces.h5 file from processedData to ~/Dropbox/cosmos_data/[date]/[session_name]/, and add the relevant information about the session to cosmos.params.trace_analyze_params.py
 
-`conda install -n base -c conda-forge widgetsnbextension`
-
-`conda install -n cosmos3 -c conda-forge ipywidgets`
-
-`jupyter nbextension enable --py --sys-prefix widgetsnbextension`
-
-See: https://ipywidgets.readthedocs.io/en/stable/user_install.html
 
 
 ### Importing intrinsic imaging movies for atlas alignment.
