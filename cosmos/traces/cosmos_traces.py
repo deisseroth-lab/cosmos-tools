@@ -506,6 +506,11 @@ class CosmosTraces:
                                                      self.atlas_annotations,
                                                      get_parent=use_parent,
                                                      do_debug=False)
+
+        if 0 in c_in_r.keys():
+            ### Remove entry for sources that are outside of the brain.
+            del c_in_r[0]
+
         regions = dict()
         for i in c_in_r.keys():
             name = self.atlas_annotations[str(i)]['acronym'].decode("utf-8")

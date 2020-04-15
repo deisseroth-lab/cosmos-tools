@@ -155,7 +155,8 @@ DATASETS = [
     #{'date': '20190604', 'name': 'cux2m4293_saline_round3_1'}
    # {'date': '20190805', 'name': 'm4293_vis_stim_1'}
 #     {'date' : '20190924', 'name' : 'VIP_m6534_test1_2'}
-    {'date' : '20190604', 'name' : 'cux2m4293_oddball_merged_orig_14_then_reversed_14'}
+#    {'date' : '20190604', 'name' : 'cux2m4293_oddball_merged_orig_14_then_reversed_14'}
+      {'date':'20180328', 'name':'cux2ai148m943_for_testing_cosmostools3'}
 ]
 
 #TODO: 
@@ -169,3 +170,6 @@ DATASETS = [
 # Need to run CNMFE on:
 #     {'date' : '20190605', 'name' : 'cux2m5456_lsd_1'}
 #     {'date' : '20190605', 'name' : 'cux2m4293_lsd_round2_1'}
+
+
+
