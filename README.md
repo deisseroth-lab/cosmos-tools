@@ -16,13 +16,6 @@ Two environments are necessary (one is python2 and one is python3), due to a qui
 
 (For some reason, ipywidgets, which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created. See See: https://ipywidgets.readthedocs.io/en/stable/user_install.html for more information about ipywidgets).
 
-###### Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with 
-`conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7`
-
-`source activate cosmos2`
-
-`python setup.py develop`
-
 Additionally, the CNMF-E implementation (https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and potentially will be ready by the time you are reading this). Thus, a MATLAB license is required for a subset of this codebase (specifically, it is only necessary for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
 You can download the most up-to-date version of CNMF_E by changing directories to the desired install location, and then running
 
@@ -31,6 +24,15 @@ You can download the most up-to-date version of CNMF_E by changing directories t
 Then, open MATLAB, change to the installation directory, and run
 
 `cnmfe_setup`
+
+
+
+###### Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with 
+`conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7`
+
+`source activate cosmos2`
+
+`python setup.py develop`
 
 
 ## -Testing the code. 
