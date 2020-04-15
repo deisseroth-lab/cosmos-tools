@@ -22,12 +22,12 @@ if __name__ == '__main__':
     # 5. RUN SCRIPT WITHOUT ARGUMENTS
     ##########################################
 	### Set the following four flags sequentially
-    do_select_crop_rois = False    ### Requires manual interaction, runs quickly. Will save out to processed_data_dir/date/session_name
-    do_process_stacks = False      ### Takes a medium amount of time to run.
+    do_select_crop_rois = True    ### Requires manual interaction, runs quickly. Will save out to processed_data_dir/date/session_name
+    do_process_stacks = True      ### Takes a medium amount of time to run.
                                   ### After this runs, verify that processed_data_dir/date/session_name/top/top.tif and
                                   ### .../bot/bot.tif look good (you can load them into ImageJ) to double check that
                                   ### there is no movement and that the video looks good.
-    do_run_cnmfe = False           ### Takes a long time to run.
+    do_run_cnmfe = True           ### Takes a long time to run.
     do_atlas_align = True        ### Requires manual interaction, runs quickly
 
     workstation = 'cosmosdata'  # 'cosmosdata', 'analysis2'
