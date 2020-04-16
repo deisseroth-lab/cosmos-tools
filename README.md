@@ -20,7 +20,7 @@ It is recommended that you use an [Anaconda](https://www.anaconda.com/distributi
 ###### Setup ipywidgets package for jupyter notebook
 `conda install -c conda-forge ipywidgets`
 
-(For some reason, [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/user_install.html), which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created.)
+(For some reason, [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/user_install.html), which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created. There have also been some issues when removing conda environments after ipywidgets has been installed, but remaking the environments appears to eventually work.)
 
 ###### Setup CNMF-E package for neural source extraction
 
