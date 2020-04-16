@@ -1,5 +1,4 @@
 # COSMOS
-
 Code to extract neuronal traces from a multi-focal microscope (COSMOS: Cortical Observation by Synchronous Multifocal Optical Sampling), and then to analyze these traces.
 
 ## Installation instructions
