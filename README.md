@@ -25,7 +25,7 @@ It is recommended that you use an [Anaconda](https://www.anaconda.com/distributi
 ###### Setup CNMF-E package for neural source extraction
 
 The [CNMF-E implementation](https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and may be ready by the time you are reading this). 
-This package uses the version of CNMF-E from June 27, 2018.
+This package uses the version of CNMF-E from June 27, 2018 (commit # ddb865832f52c81725859df8b5e032b4acb421e9).
 A MATLAB license is thus required for a subset of this codebase (specifically, only for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
 You can download the most up-to-date version of CNMF_E to your desired install location with
 
