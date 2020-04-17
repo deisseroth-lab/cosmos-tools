@@ -192,7 +192,7 @@ def classify_neurons(neuron_struct, corr_thresh=0.8, aspect_ratio_thresh=2):
             try:
                 cc, _ = pearsonr(np.squeeze(C[i, inds]),
                                  np.squeeze(C_raw[i, inds]))
-            except:
+            except Exception:
                 cc = 0
             corrs[i] = cc
 
@@ -325,10 +325,14 @@ def get_roi_map(all_cm, all_area, imshape):
     out_of_bounds = np.where(np.logical_or(all_cm[:, 0] > NX,
                              all_cm[:, 1] > NY))[0]
     if len(out_of_bounds) > 0:
-        warnings.warn('There are '+str(len(out_of_bounds))+' rois out of bounds in the aligned and cropped images.'
-                      'This is likely because you cropped one of the bot_focus or top_focus images much smaller than'
-                      'the other one, and therefore padding got cut off. This error arises in get_roi_map. You can'
-                      'either recrop and reimport data, or just let it slide, depending on the application.')
+        warnings.warn('There are ' + str(len(out_of_bounds)) +
+                      ' rois out of bounds in the aligned and cropped images. '
+                      'This is likely because you cropped one of the ' +
+                      'bot_focus or top_focus images much smaller than ' +
+                      'the other one, and therefore padding got cut off. ' +
+                      'This error arises in get_roi_map. You can ' +
+                      'either recrop and reimport data, ' +
+                      'or just let it slide, depending on the application.')
         all_cm = np.delete(all_cm, out_of_bounds, axis=0)
         all_area = np.delete(all_area, out_of_bounds, axis=0)
     r_map[all_cm[:, 0].astype(int), all_cm[:, 1].astype(int)] = all_area[:, 0]
@@ -372,7 +376,8 @@ def com(A, d1, d2):
 
 
 def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9,
-                  display_numbers=True, display_reduced_index=True, max_number=None,
+                  display_numbers=True, display_reduced_index=True,
+                  max_number=None,
                   cmap=None, swap_dim=False, colors=(1, 1, 1, 1), vmin=None,
                   vmax=None, highlight_neurons=None,
                   highlight_color=(1, 1, 1, 1),
@@ -380,7 +385,6 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9,
                   contour_linewidth=1, rotate_vertical=False,
                   show_footprints=False,
                   **kwargs):
-    #TODO: Refactor this in terms of get_contours_fast and get_cm
     """Plots contour of spatial components against a background image
        and returns their coordinates
 
@@ -523,27 +527,27 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9,
     ax.add_collection(p)
 
     if highlight_neurons is not None:
-            tt = type(highlight_color)
-            if tt == tuple:
-                facecolors = (highlight_color,)
-            elif (tt == np.ndarray or tt == list):
-                # Assume we provided a unique color for each point
-                facecolors = highlight_color
-            else:
-                # Assumes a colormap is provided
-                facecolors = [highlight_color(x/float(len(highlight_neurons)))
-                              for x in np.arange(len(highlight_neurons))]
-            if just_show_highlighted:
-                p = PatchCollection(polygons, edgecolors=facecolors,
-                                    linewidths=(contour_linewidth,),
-                                    facecolors=facecolors)
-                ax.add_collection(p)
-            else:
-                highlight_polygons = [polygons[x] for x in highlight_neurons]
-                ph = PatchCollection(highlight_polygons, edgecolors=facecolors,
-                                     linewidths=(contour_linewidth,),
-                                     facecolors=facecolors)
-                ax.add_collection(ph)
+        tt = type(highlight_color)
+        if tt == tuple:
+            facecolors = (highlight_color,)
+        elif (tt == np.ndarray or tt == list):
+            # Assume we provided a unique color for each point
+            facecolors = highlight_color
+        else:
+            # Assumes a colormap is provided
+            facecolors = [highlight_color(x/float(len(highlight_neurons)))
+                          for x in np.arange(len(highlight_neurons))]
+        if just_show_highlighted:
+            p = PatchCollection(polygons, edgecolors=facecolors,
+                                linewidths=(contour_linewidth,),
+                                facecolors=facecolors)
+            ax.add_collection(p)
+        else:
+            highlight_polygons = [polygons[x] for x in highlight_neurons]
+            ph = PatchCollection(highlight_polygons, edgecolors=facecolors,
+                                 linewidths=(contour_linewidth,),
+                                 facecolors=facecolors)
+            ax.add_collection(ph)
 
     if display_numbers:
         if highlight_neurons is None:
@@ -568,8 +572,6 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9,
                 ax.text(cm[i, 0]+3, cm[i, 1]-3, str(label),
                         color=(0, 1, 0, 1), weight='bold')
             else:
-                # ax.text(cm[i, 1], cm[i, 0], str(label),
-                #         color=(0, 1, 0, 1), weight='bold') ### *** THIS WAS PRE-9/20/18. THE CHANGE TO THIS MAY HAVE SCREWED THINGS UP. BE CAREFUL.
                 ax.text(d1-cm[i, 0]+3, cm[i, 1]-3, str(label),
                         color=(0, 1, 0, 1), weight='bold')
 

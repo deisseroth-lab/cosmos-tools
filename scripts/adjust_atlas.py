@@ -24,28 +24,31 @@ from cosmos.imaging.cosmos_dataset import CosmosDataset
 # in processedData folder (on the computer where trace extraction occured).
 
 if __name__ == '__main__':
-    #data_dir = "/home/izkula/Dropbox/cosmos_data/"
+    # data_dir = "/home/izkula/Dropbox/cosmos_data/"
     data_dir = "/home/user/Dropbox/cosmos_data/"
-    # dd = '/home/deisseroth/Dropbox/Projects/cosmos_data/'
 
     do_adhoc = False
 
     if do_adhoc:
         # Visual dataset 8
-        #h5_path = (dd + '20180213/' +
+        # h5_path = (dd + '20180213/' +
         #           'm72_vis_stim_2/20180213-m72_vis_stim_2-merged_traces.h5')
         # Visual dataset 12
-        #h5_path = (dd + '20180522/' +
-        #           'cux2ai148m194_visual_stim_1/20180522-cux2ai148m194_visual_stim_1-merged_traces.h5')
+        # h5_path = (dd + '20180522/' +
+        #           'cux2ai148m194_visual_stim_1/' +
+        # '20180522-cux2ai148m194_visual_stim_1-merged_traces.h5')
         # Visual dataset 13
-        #h5_path = (dd + '20180522/' +
-        #           'cux2ai148m943_visual_stim_1/20180522-cux2ai148m943_visual_stim_1-merged_traces.h5')
+        # h5_path = (dd + '20180522/' +
+        #           'cux2ai148m943_visual_stim_1/' +
+        # 20180522-cux2ai148m943_visual_stim_1-merged_traces.h5')
         # Visual dataset 14
-        #h5_path = (dd + '20180523/' +
-        #           'cux2ai148m945_visual_stim_1/20180523-cux2ai148m945_visual_stim_1-merged_traces.h5')
+        # h5_path = (dd + '20180523/' +
+        #           'cux2ai148m945_visual_stim_1/' +
+        # 20180523-cux2ai148m945_visual_stim_1-merged_traces.h5')
         # Visual dataset 15
         h5_path = (dd + '20180523/' +
-                   'cux2ai148m192_vis_stim_1/20180523-cux2ai148m192_vis_stim_1-merged_traces.h5')
+                   'cux2ai148m192_vis_stim_1/' +
+                   '20180523-cux2ai148m192_vis_stim_1-merged_traces.h5')
     else:
         dataset_id = 38
 

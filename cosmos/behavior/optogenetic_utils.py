@@ -8,7 +8,6 @@ import scipy.stats
 import statsmodels.stats.multitest as mt
 
 
-
 def get_included_trials(bd, min_trial=15, max_trial=190):
     included_trials = np.ones(bd.stim_types.shape).astype(bool)
     included_trials[:min_trial] = 0
@@ -16,27 +15,32 @@ def get_included_trials(bd, min_trial=15, max_trial=190):
 
     return included_trials
 
-def plot_mean_across_mice_licks_by_stim(joined_licks_by_stim, event_times=None, t0=2.2, fps=1/.034):
+
+def plot_mean_across_mice_licks_by_stim(licks, event_times=None,
+                                        t0=2.2, fps=1/.034):
     plt.figure(figsize=(15, 2))
     colors = ['orange', 'w', 'c', 'r']
 
     iter = 1
-    for stim_type in joined_licks_by_stim.keys():
-        for active_spout in joined_licks_by_stim[stim_type].keys():
+    for stim_type in licks.keys():
+        for active_spout in licks[stim_type].keys():
             plt.subplot(1, 6, iter)
-            mean_across_mice = np.mean(joined_licks_by_stim[stim_type][active_spout],
+            mean_across_mice = np.mean(licks[stim_type][active_spout],
                                        axis=2)
-            sem_across_mice = scipy.stats.sem(joined_licks_by_stim[stim_type][active_spout],
+            sem_across_mice = scipy.stats.sem(licks[stim_type][active_spout],
                                               axis=2)
             for ind, spout in enumerate(range(mean_across_mice.shape[0])):
                 m = mean_across_mice[spout, :]
                 s = sem_across_mice[spout, :]
-                plt.fill_between(x=np.arange(len(m))/fps-t0, y1=m-s, y2 = m+s, label=spout, color=colors[ind], alpha=0.3)
-                plt.plot(np.arange(len(m))/fps-t0, m, label=spout, color=colors[ind])
+                plt.fill_between(x=np.arange(len(m))/fps-t0, y1=m-s, y2=m+s,
+                                 label=spout, color=colors[ind], alpha=0.3)
+                plt.plot(np.arange(len(m))/fps-t0, m,
+                         label=spout, color=colors[ind])
                 if event_times is not None:
-                    [plt.axvline(x, color='k', linestyle='--', linewidth=0.5) for x in event_times]
+                    [plt.axvline(x, color='k', linestyle='--', linewidth=0.5)
+                     for x in event_times]
                 plt.ylim([-0.2, 8])
-            if iter>1:
+            if iter > 1:
                 plt.gca().axes.yaxis.set_ticklabels([])
             iter += 1
             plt.title('Stim: {}, Active: {}'.format(stim_type, active_spout))
@@ -46,7 +50,7 @@ def concatenate_across_mice_licks_by_stim(all_mean_licks_by_stim,
                                           datasets,
                                           which_mice=None,
                                           inds=None):
-    joined_licks_by_stim = dict()  ### Concatenate all mice at lowest dict level.
+    joined_licks_by_stim = dict()  # Concatenate all mice at lowest dict level.
     for kk in inds:
         dd = datasets[kk]
         if dd[2] in which_mice:
@@ -58,8 +62,8 @@ def concatenate_across_mice_licks_by_stim(all_mean_licks_by_stim,
                     if stim_type not in joined_licks_by_stim.keys():
                         joined_licks_by_stim[stim_type] = dict()
 
-                    if active_spout not in joined_licks_by_stim[
-                        stim_type].keys():
+                    if (active_spout not in
+                            joined_licks_by_stim[stim_type].keys()):
                         joined_licks_by_stim[stim_type][active_spout] = \
                             mean_licks_by_active_spout[active_spout]
                     else:
@@ -69,6 +73,7 @@ def concatenate_across_mice_licks_by_stim(all_mean_licks_by_stim,
                                  mean_licks_by_active_spout[active_spout]))
 
     return joined_licks_by_stim
+
 
 def plot_total_licks_by_stim(licks_by_stim, patterns, title_str,
                              width=0.4, do_bar=True):
@@ -83,7 +88,7 @@ def plot_total_licks_by_stim(licks_by_stim, patterns, title_str,
     :param do_bar: bool. True for bar chart, false for paired plot.
     :return: pvals
     """
-    ### Get paired pvals
+    # Get paired pvals
     pvals = []
     for ind, pattern in enumerate(patterns):
         _, p = scipy.stats.ttest_rel(licks_by_stim[pattern][0],
@@ -91,14 +96,14 @@ def plot_total_licks_by_stim(licks_by_stim, patterns, title_str,
         pvals.append(p)
 
     _, pval_fdr, _, _ = mt.multipletests([pvals[x] for x in range(len(pvals))],
-                                   alpha=0.05, method='fdr_bh')
+                                         alpha=0.05, method='fdr_bh')
     print(title_str)
     print('pvals uncorrected:')
     print(np.round(np.array(pvals), 4))
     print('pvals fdr-bh:')
     print(np.round(np.array(pval_fdr), 4))
 
-    ### Now make paired plot
+    # Now make paired plot
     if not do_bar:
         plt.figure()
         for ind, pattern in enumerate(patterns):
@@ -115,9 +120,7 @@ def plot_total_licks_by_stim(licks_by_stim, patterns, title_str,
         # plt.suptitle(np.round(np.array(pvals)*len(pvals), 3))
         plt.suptitle(np.round(np.array(pval_fdr), 3))
 
-
-
-    ### Now make bar plot  (factor this!!)
+    # Now make bar plot  (factor this!!)
     if do_bar:
         plt.figure()
         for ind, pattern in enumerate(patterns):
@@ -136,7 +139,6 @@ def plot_total_licks_by_stim(licks_by_stim, patterns, title_str,
         # plt.suptitle(np.round(np.array(pvals)*len(pvals), 3))
         plt.suptitle(np.round(np.array(pval_fdr), 3))
 
-
     return pvals
 
 
@@ -149,15 +151,17 @@ def plot_mean_licks_by_stim(all_mean_licks_by_stim, datasets, inds):
         plt.figure(figsize=(15, 2))
         iter = 1
         for stim_type in mean_licks_by_stim.keys():
-            mean_licks_by_active_spout =  mean_licks_by_stim[stim_type]
+            mean_licks_by_active_spout = mean_licks_by_stim[stim_type]
             for active_spout in mean_licks_by_active_spout.keys():
                 plt.subplot(1, 6, iter)
                 plt.plot(mean_licks_by_active_spout[active_spout].T)
                 iter += 1
-                plt.title('Stim: {}, Active: {}'.format(stim_type, active_spout))
+                plt.title('Stim: {}, Active: {}'.format(stim_type,
+                                                        active_spout))
 
         plt.suptitle('{}, {}'.format(d[1], d[2]))
         plt.tight_layout()
+
 
 def get_mean_licks_by_stim(bd, which_trials, smooth=None):
     """
@@ -175,11 +179,11 @@ def get_mean_licks_by_stim(bd, which_trials, smooth=None):
     for stim_type in np.unique(bd.stim_types):
         specific_trials = np.logical_and(which_trials,
                                          bd.stim_types == stim_type)
-        mean_licks_by_stim[stim_type] = get_mean_licks_by_active_spout(bd,
-                                                                       specific_trials,
-                                                                       smooth=smooth)
+        mean_licks_by_stim[stim_type] = get_mean_licks_by_active_spout(
+            bd, specific_trials, smooth=smooth)
 
     return mean_licks_by_stim
+
 
 def get_mean_licks_by_active_spout(bd, which_trials, smooth=None):
     """
@@ -195,9 +199,8 @@ def get_mean_licks_by_active_spout(bd, which_trials, smooth=None):
     for active_spout in np.unique(bd.spout_positions):
         specific_trials = np.logical_and(which_trials,
                                          bd.spout_positions == active_spout)
-        mean_licks_by_active_spout[active_spout] = get_mean_licks(bd,
-                                                                  specific_trials,
-                                                                  smooth=smooth)
+        mean_licks_by_active_spout[active_spout] = get_mean_licks(
+            bd, specific_trials, smooth=smooth)
 
     return mean_licks_by_active_spout
 
@@ -242,8 +245,8 @@ def plot_stim_vs_nostim_licks(bd, nostim, stim, nostim_success, stim_success):
               'Stim: {:.2f}'.format(stim_success / np.sum(stim))]
 
     plt.figure(figsize=(15, 5))
-    stim_interval = bd.stim_interval - bd.stimulus_times[0]  ## This may not be right.
-    if stim_interval[1] == 1: ### This was a bug in the acquisition logging code
+    stim_interval = bd.stim_interval - bd.stimulus_times[0]  # Check?
+    if stim_interval[1] == 1:  # This was a bug in the logging code
         stim_interval[1] = 1.5
     bd.plot_stim_licks(fig_save_dir=None, stim_interval=stim_interval,
                        ax=[plt.subplot(221), plt.subplot(223)],
@@ -260,8 +263,7 @@ def plot_stim_vs_nostim_licks(bd, nostim, stim, nostim_success, stim_success):
                               title_strs=['stim, pre', 'stim, post'])
 
 
-
-def summarize_stim_vs_nostim_performance(bd, fig_save_dir=None,
+def summarize_stim_vs_nostim(bd, fig_save_dir=None,
                              min_trial=15, max_trial=190,
                              do_plot=False,
                              just_nogo=False, just_go=False):
@@ -290,17 +292,16 @@ def summarize_stim_vs_nostim_performance(bd, fig_save_dir=None,
 
     if just_nogo:
         print('Just including nogo')
-        include_trials[~(bd.trial_types==4)] = 0
+        include_trials[~(bd.trial_types == 4)] = 0
         print('Total nogo trials {}'.format(np.sum(include_trials)))
 
     if just_go:
         print('Just including go')
-        include_trials[(bd.trial_types==4)] = 0
+        include_trials[(bd.trial_types == 4)] = 0
         print('Total go trials {}'.format(np.sum(include_trials)))
 
     stim = stim*include_trials
     nostim = nostim*include_trials
-
 
     stim_success = np.sum(np.logical_and.reduce((stim,
                                                  bd.success,
@@ -342,6 +343,7 @@ def get_dataset_by_property(datasets, property_str):
                 inds.append(kk)
                 break
     return inds
+
 
 def polar_plot_with_errbar(mean_vals, err_vals, theta, colors,
                            do_normalize=True, ax=None):
@@ -386,13 +388,13 @@ def polar_plot_with_errbar(mean_vals, err_vals, theta, colors,
 
         v = matplotlib.__version__.split('.')
         if int(v[0]) > 1 and int(v[1]) > 0:
-            ### If you upgrade to matplotlib v2.1 then you should be able to use:
+            # If you upgrade to matplotlib v2.1 then you should be able to use:
             ax.set_thetamin(0)
             ax.set_thetamax(180)
             ax.set_rmax(1)
         else:
             pass
-            #warning('Please upgrade matplotlib to v2.1 or greater.')
+            # warning('Please upgrade matplotlib to v2.1 or greater.')
 
 
 def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
@@ -400,11 +402,11 @@ def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
     """
     Make polar plot with shaded error bars around each point to compare stim
     vs. no stim.
-    :param joined_licks_by_stim: [stim/nostim][active spout][nspouts x time x session]
+    :param joined_licks_by_stim: [stim/nostim][spout][nspouts x time x session]
     :param t_range: an array containing the start and end time
                   in seconds to use when generating the plot.
                   t=0 is the beginning of the trial (not odor delivery).
-    :param do_normalize: normalize lick rates to max lick rate across the spouts,
+    :param do_normalize: normalize lick rates to max rate across the spouts,
                         before computing mean and sem across mice.
     :return:
     """
@@ -412,7 +414,8 @@ def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
     colors = ['orange', 'c', 'r']
     # colors = colors[::-1]  ### Flip order for sake of plotting order
 
-    fig, axarr = plt.subplots(1, 2, subplot_kw=dict(projection='polar'), figsize=(9, 3))
+    fig, axarr = plt.subplots(
+        1, 2, subplot_kw=dict(projection='polar'), figsize=(9, 3))
     theta = np.deg2rad(np.array([15, 90, 165]))
     titles = ['nostim', 'stim']
 
@@ -420,7 +423,7 @@ def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
         active_spouts = joined_licks_by_stim[stim_type].keys()
         active_spouts = np.array([x for x in active_spouts])
 
-        active_spouts = active_spouts[::-1] ## Flip order for sake of plotting order
+        active_spouts = active_spouts[::-1]  # Flip order for plotting
         nspouts = len(active_spouts)
         spout_dist = np.zeros((nspouts, nspouts))
         sem_spout_dist = np.zeros((nspouts, nspouts))
@@ -430,18 +433,22 @@ def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
 
             if do_normalize:
                 spout_licks = joined_licks_by_stim[stim_type][active_spout]
-                mean_across_time = np.mean(spout_licks[:, frame_range, :], axis=1)
+                mean_across_time = np.mean(
+                    spout_licks[:, frame_range, :], axis=1)
                 mean_across_time /= np.max(mean_across_time, axis=0)
                 m = np.mean(mean_across_time[active_spouts-1, :], axis=1)
-                s = scipy.stats.sem(mean_across_time[active_spouts-1, :], axis=1)
+                s = scipy.stats.sem(
+                    mean_across_time[active_spouts-1, :], axis=1)
             else:
-                mean_across_mice = np.mean(joined_licks_by_stim[stim_type][active_spout],
-                                           axis=2)
-                sem_across_mice = scipy.stats.sem(joined_licks_by_stim[stim_type][active_spout],
-                                                  axis=2)
+                mean_across_mice = np.mean(
+                    joined_licks_by_stim[stim_type][active_spout], axis=2)
+                sem_across_mice = scipy.stats.sem(
+                    joined_licks_by_stim[stim_type][active_spout], axis=2)
 
-                m = np.mean(mean_across_mice[:, frame_range][active_spouts-1], axis=1)
-                s = np.mean(sem_across_mice[:, frame_range][active_spouts-1], axis=1)
+                m = np.mean(
+                    mean_across_mice[:, frame_range][active_spouts-1], axis=1)
+                s = np.mean(
+                    sem_across_mice[:, frame_range][active_spouts-1], axis=1)
             spout_dist[active_spout_iter, :] = m
             sem_spout_dist[active_spout_iter, :] = s
 
@@ -452,8 +459,8 @@ def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
                                do_normalize=True, ax=None)
 
         plt.xlabel(titles[sind])
-        plt.gcf().subplots_adjust(wspace=-.2, bottom=0, top=1,
-                            right=1)  # Control padding around subplots
+        plt.gcf().subplots_adjust(
+            wspace=-.2, bottom=0, top=1, right=1)
         plt.gca().axes.xaxis.set_ticklabels([])
         plt.gca().xaxis.labelpad = -15  # Contol padding of xlabel
 
@@ -491,7 +498,6 @@ def polar_lick_plot_across_mice(joined_licks_by_stim, frame_range=None,
 #     return p
 
 
-
 def get_stim_pval(mean_scores, which_mice,
                   pattern1, pattern2,
                   p_method='ttest',
@@ -524,7 +530,9 @@ def get_stim_pval(mean_scores, which_mice,
 
     return p
 
-def get_stim_pvals(mean_scores, patterns, which_mice, which_comparison='peri-odor',
+
+def get_stim_pvals(mean_scores, patterns, which_mice,
+                   which_comparison='peri-odor',
                    which_stat='success_ratio'):
     """
     Compute the specific statistical tests for each
@@ -536,9 +544,10 @@ def get_stim_pvals(mean_scores, patterns, which_mice, which_comparison='peri-odo
     """
 
     if which_comparison == 'peri-odor':
-        ### Repeated measures Anova before post-hoc ttests
+        # Repeated measures Anova before post-hoc ttests
         # from statsmodels.stats.anova import AnovaRM
-        # aovrm = AnovaRM(mean_scores, 'success_ratio', 'Mouse', within=['Pattern'])
+        # aovrm = AnovaRM(
+        #   mean_scores, 'success_ratio', 'Mouse', within=['Pattern'])
         # res = aovrm.fit()
         # print(res)
 
@@ -566,8 +575,8 @@ def get_stim_pvals(mean_scores, patterns, which_mice, which_comparison='peri-odo
         p = sig[1]
         pval_str = ['{}: {:.3}, '.format(comparisons[i][0], p[i])
                     for i in range(len(comparisons))]
-        pval_str = 'ttest-rel, fdr_bh {}: '.format(which_stat) + ''.join(pval_str )
-
+        pval_str = ('ttest-rel, fdr_bh {}: '.format(which_stat) +
+                    ''.join(pval_str))
 
     if which_comparison == 'pre-odor':
         comparisons = [
@@ -589,8 +598,7 @@ def get_stim_pvals(mean_scores, patterns, which_mice, which_comparison='peri-odo
         p = sig[1]
         pval_str = ['{}: {:.3}, '.format(comparisons[i][0], p[i])
                     for i in range(len(comparisons))]
-        pval_str = 'ttest-rel, fdr_bh ' + ''.join(pval_str )
-
+        pval_str = 'ttest-rel, fdr_bh ' + ''.join(pval_str)
 
     return pval_str
 
@@ -614,7 +622,7 @@ def plot_raw_stim_performance(patterns, which_mice, mean_scores,
 
     plt.figure()
 
-    ### Plot stim/nostim success ratio
+    # Plot stim/nostim success ratio
     if show_indiv_points:
         for ind, pattern in enumerate(patterns):
             s_pattern_mean = 0
@@ -673,7 +681,7 @@ def plot_stim_performance(patterns, which_mice, mean_scores,
 
     plt.figure()
 
-    ### Plot stim/nostim success ratio
+    # Plot stim/nostim success ratio
     if show_indiv_points:
         for ind, pattern in enumerate(patterns):
             pattern_mean = 0
@@ -682,7 +690,8 @@ def plot_stim_performance(patterns, which_mice, mean_scores,
                 a = mean_scores[mean_scores['Mouse'] == mouse]
                 # print(np.array(a[a['Pattern'] == pattern]['success_ratio']))
 
-                success_ratio = np.array(a[a['Pattern'] == pattern]['success_ratio'])
+                success_ratio = np.array(
+                    a[a['Pattern'] == pattern]['success_ratio'])
                 for sr in success_ratio:
                     pattern_mean += sr
                     mean_iter += 1
@@ -740,7 +749,7 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
         for kk in inds:
             bd = all_bd[kk]
             d = datasets[kk]
-            stim_success, nostim_success = summarize_stim_vs_nostim_performance(
+            stim_success, nostim_success = summarize_stim_vs_nostim(
                 bd,
                 fig_save_dir=None,
                 min_trial=15,
@@ -749,7 +758,7 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
                 just_nogo=False,
                 just_go=False)
 
-            ng_stim_success, ng_nostim_success = summarize_stim_vs_nostim_performance(
+            ng_stim_success, ng_nostim_success = summarize_stim_vs_nostim(
                 bd,
                 fig_save_dir=None,
                 min_trial=15,
@@ -758,7 +767,7 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
                 just_nogo=True,
                 just_go=False)
 
-            g_stim_success, g_nostim_success = summarize_stim_vs_nostim_performance(
+            g_stim_success, g_nostim_success = summarize_stim_vs_nostim(
                 bd,
                 fig_save_dir=None,
                 min_trial=15,
@@ -766,7 +775,6 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
                 do_plot=do_plot_indiv,
                 just_nogo=False,
                 just_go=True)
-
 
             success_ratio = stim_success / nostim_success
             all_success_ratio.append(success_ratio)
@@ -776,7 +784,8 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
             is_control_stim = d[1].find('led') != -1
             is_pre = d[1].find('pre') != -1
             #         if not is_control_mouse:
-            data = {'Pattern': d[1], 'Mouse': d[2], 'Control': is_control_mouse,
+            data = {'Pattern': d[1], 'Mouse': d[2],
+                    'Control': is_control_mouse,
                     'Control_stim': is_control_stim, 'Pre': is_pre,
                     'stim_success': stim_success,
                     'nostim_success': nostim_success,
@@ -791,10 +800,10 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
                     }
             scores = scores.append(data, ignore_index=True)
 
-
             if do_plot_indiv:
-                plt.suptitle('{} {}: {:.2f}'.format(d[2], d[1], success_ratio), fontsize=20)
-
+                plt.suptitle(
+                    '{} {}: {:.2f}'.format(d[2], d[1], success_ratio),
+                    fontsize=20)
 
         if do_plot_all:
             thy1_inds = get_dataset_by_property(labels, 'thy1')
@@ -804,7 +813,7 @@ def organize_stim_data_into_dataframe(all_bd, datasets,
                     x = 1
                 else:
                     x = 2
-                plt.plot(x, all_success_ratio[i], 'o')#, color=mouse_colors[labels[i][0]])
+                plt.plot(x, all_success_ratio[i], 'o')
                 plt.xlim([0.5, 2.5])
                 plt.ylabel('stim/nostim success ratio')
                 plt.xticks([1, 2], ['thy1', 'vgat'])

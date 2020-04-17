@@ -4,17 +4,22 @@ A module for registering image coordinates to atlas coordinates.
 """
 
 import os
-import numpy as np
+from tempfile import TemporaryFile
 import scipy.io as spio
 import pkg_resources
-from tempfile import TemporaryFile
+import numpy as np
 
-import cosmos.imaging.cell_selection as utils
-
-import matplotlib.pyplot as plt
+from tkinter import Tk, Label, Button, Canvas, PhotoImage, LEFT, RIGHT, W
+from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from IPython.core.debugger import set_trace
+import matplotlib.backends.tkagg as tkagg
+import matplotlib.pyplot as plt
 
 import warnings
+
+import cosmos.imaging.cell_selection as utils
 
 
 def load_atlas():
@@ -129,15 +134,17 @@ def align_atlas_to_image(atlas, img, atlas_coords, img_coords, do_debug=False):
 
     return aligned_atlas, aligned_img, tform
 
+
 def get_atlas_outline(atlas):
     atlas[np.where(atlas > 0)[0],
-                  np.where(atlas > 0)[1]] = 1
+          np.where(atlas > 0)[1]] = 1
     from skimage.morphology import skeletonize, binary_dilation, disk
     import scipy.signal
     filtered_atlas = scipy.signal.medfilt(atlas, 3)
     skeleton = skeletonize(filtered_atlas)
     outline = binary_dilation(skeleton, selem=disk(1))
     return outline
+
 
 def overlay_atlas_outline(atlas_outline, img):
     """
@@ -176,7 +183,9 @@ def region_name_from_coordinate(xy_coord, tform, atlas, annotations,
     id = atlas[atlas_coords[1], atlas_coords[0]]
     if id == 0:
         annotation = None
-        warnings.warn('Warning: There are likely neuronal sources located outside of the brain, maybe want to go back to  and cull them (i.e. in trace_merge_script.ipynb).')
+        warnings.warn('Warning: There are likely neuronal sources ' +
+                      'located outside of the brain, maybe want to go back ' +
+                      'and cull them using trace_merge_script.ipynb.')
     else:
         annotation = annotations[str(id)]
 
@@ -251,11 +260,6 @@ def assign_cells_to_regions(xy_coords, tform, atlas, annotations,
     return cells_in_region, region_of_cell
 
 
-from tkinter import Tk, Label, Button, Canvas, PhotoImage, LEFT, RIGHT, W
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-import matplotlib.backends.tkagg as tkagg
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-
 class AlignAtlasGUI:
     """
     A GUI that allows finescale translation and scaling
@@ -267,13 +271,14 @@ class AlignAtlasGUI:
                  atlas_coords, img_coords, save_loc):
         self.master = master
         master.title("Atlas alignment GUI")
-        master.protocol("WM_DELETE_WINDOW", self.disable_event) #Disable 'close' button.
-                                                                # Use EXIT button instead.
+
+        # Disable 'close' button. Use EXIT button instead.
+        master.protocol("WM_DELETE_WINDOW", self.disable_event)
         self.atlas_outline = atlas_outline
         self.img = img
         self.atlas_coords = atlas_coords
         self.img_coords = img_coords
-        self.save_loc = save_loc # Temporary location to save out aligned img_coords
+        self.save_loc = save_loc  # Temporary location to save img_coords
 
         # Sets the magnitude of each translation or scaling button press.
         self.shift_size = 1
@@ -283,13 +288,17 @@ class AlignAtlasGUI:
         self.label = Label(master, text="Translate!")
         self.label.grid(row=1, column=0)
 
-        self.translateL_button = Button(master, text="<", command=self.translateL)
+        self.translateL_button = Button(
+            master, text="<", command=self.translateL)
         self.translateL_button.grid(row=1, column=1)
-        self.translateR_button = Button(master, text=">", command=self.translateR)
+        self.translateR_button = Button(
+            master, text=">", command=self.translateR)
         self.translateR_button.grid(row=1, column=2)
-        self.translateU_button = Button(master, text="^", command=self.translateU)
+        self.translateU_button = Button(
+            master, text="^", command=self.translateU)
         self.translateU_button.grid(row=1, column=3)
-        self.translateD_button = Button(master, text="D", command=self.translateD)
+        self.translateD_button = Button(
+            master, text="D", command=self.translateD)
         self.translateD_button.grid(row=1, column=4)
         self.label1 = Label(master, text="Scale:")
         self.label1.grid(row=1, column=5)
@@ -297,7 +306,8 @@ class AlignAtlasGUI:
         self.scaleU_button.grid(row=1, column=6)
         self.scaleD_button = Button(master, text="D", command=self.scaleD)
         self.scaleD_button.grid(row=1, column=7)
-        self.exit_button = Button(master, text="Finished (EXIT)", command=self.save_and_exit)
+        self.exit_button = Button(
+            master, text="Finished (EXIT)", command=self.save_and_exit)
         self.exit_button.grid(row=1, column=8, columnspan=50)
 
         # Generate initial alignment.
@@ -310,7 +320,7 @@ class AlignAtlasGUI:
         ax = fig.add_axes([0, 0, 1, 1])
         self.imdisplay = ax.imshow(overlay)
         ax.plot(self.img_coords[:, 0], self.img_coords[:, 1], 'ro')
-        self.keypointdisplay, = ax.plot(self.img_coords[:,0],
+        self.keypointdisplay, = ax.plot(self.img_coords[:, 0],
                                         self.img_coords[:, 1], 'bo')
         self.canvas = FigureCanvasTkAgg(fig, master=master)
         self.canvas.show()
@@ -332,8 +342,8 @@ class AlignAtlasGUI:
             self.atlas_outline, self.img, self.atlas_coords, self.img_coords)
         overlay = overlay_atlas_outline(aligned_atlas_outline, self.img)
         self.imdisplay.set_data(overlay)
-        self.keypointdisplay.set_xdata(self.img_coords[:,0])
-        self.keypointdisplay.set_ydata(self.img_coords[:,1])
+        self.keypointdisplay.set_xdata(self.img_coords[:, 0])
+        self.keypointdisplay.set_ydata(self.img_coords[:, 1])
         self.canvas.draw()
 
     def translateR(self):
@@ -357,20 +367,20 @@ class AlignAtlasGUI:
         self.update_canvas()
 
     def scaleU(self):
-        diff = self.img_coords[0,:] - self.img_coords[1,:]
+        diff = self.img_coords[0, :] - self.img_coords[1, :]
         diff = diff/np.sqrt(np.sum(diff**2))
         scale = self.scale_size
-        self.img_coords[0,:] += scale*diff
-        self.img_coords[1,:] -= scale*diff
+        self.img_coords[0, :] += scale*diff
+        self.img_coords[1, :] -= scale*diff
         print("Scale up.")
         self.update_canvas()
 
     def scaleD(self):
-        diff = self.img_coords[0,:] - self.img_coords[1,:]
+        diff = self.img_coords[0, :] - self.img_coords[1, :]
         diff = diff/np.sqrt(np.sum(diff**2))
         scale = self.scale_size
-        self.img_coords[0,:] -= scale*diff
-        self.img_coords[1,:] += scale*diff
+        self.img_coords[0, :] -= scale*diff
+        self.img_coords[1, :] += scale*diff
         print("Scale down.")
         self.update_canvas()
 
@@ -382,6 +392,7 @@ class AlignAtlasGUI:
         print("Exiting.")
         self.master.quit()  # stops mainloop
         self.master.destroy()
+
 
 def select_keypoints(atlas_outline, img):
     """
@@ -399,9 +410,6 @@ def select_keypoints(atlas_outline, img):
     keypoint_positions = ['Anterior midline',
                           'Posterior midline']
 
-    ### Load atlas.
-    # atlas, annotations, atlas_outline = load_atlas()
-
     do_manual_atlas_keypoint = False
     if do_manual_atlas_keypoint:
         atlas_coords = []
@@ -413,15 +421,15 @@ def select_keypoints(atlas_outline, img):
             plt.plot(c[0][0], c[0][1], 'ro')
             atlas_coords.extend(c)
     else:
-        atlas_coords = [(98, 227),  # (83, 227)
+        # These numbers were taken from an initial manual selection.
+        atlas_coords = [(98, 227),
                         (348, 227)]
-                       ### These numbers were taken from an initial manual selection.
         plt.figure(figsize=(30, 30))
         plt.imshow(atlas_outline)
         for cc in atlas_coords:
             plt.plot(cc[0], cc[1], 'ro')
 
-    ### Convert selected keypoints to array.
+    # Convert selected keypoints to array.
     atlas_coords_array = np.zeros((len(atlas_coords), 2))
     for ci, c in enumerate(atlas_coords):
         atlas_coords_array[ci, 0] = np.round(c[0])
@@ -441,7 +449,7 @@ def select_keypoints(atlas_outline, img):
                 plt.plot(c[0][0], c[0][1], 'ro')
                 img_coords.extend(c)
         else:
-            ### These numbers are just for fast debugging.
+            # These numbers are just for fast debugging.
             img_coords = [(26, 297),
                           (430, 314)]
             # (26, 187),
@@ -453,7 +461,7 @@ def select_keypoints(atlas_outline, img):
 
         plt.close('all')
 
-        ### Convert selected keypoints to array.
+        # Convert selected keypoints to array.
         img_coords_array = np.zeros((len(img_coords), 2))
         for ci, c in enumerate(img_coords):
             img_coords_array[ci, 0] = np.round(c[0])
@@ -482,10 +490,10 @@ def run_align_atlas_gui(img=None, fig_path=None):
 
     atlas, annotations, atlas_outline = load_atlas()
 
-    ### Initialize keypoints selection.
+    # Initialize keypoints selection.
     atlas_coords_array, img_coords_array = select_keypoints(atlas_outline, img)
-    atlas_coords = atlas_coords_array[0:2,:]
-    img_coords = img_coords_array[0:2,:]
+    atlas_coords = atlas_coords_array[0:2, :]
+    img_coords = img_coords_array[0:2, :]
 
     aligned_atlas_outline, aligned_img, tform = align_atlas_to_image(
         atlas_outline, img,
@@ -495,10 +503,11 @@ def run_align_atlas_gui(img=None, fig_path=None):
     )
     overlay = overlay_atlas_outline(aligned_atlas_outline, img)
 
-    ### Launch GUI for refining the initial alignment.
+    # Launch GUI for refining the initial alignment.
     save_loc = TemporaryFile()
     root = Tk()
-    my_gui = AlignAtlasGUI(root, atlas_outline, img, atlas_coords, img_coords, save_loc)
+    my_gui = AlignAtlasGUI(
+        root, atlas_outline, img, atlas_coords, img_coords, save_loc)
     root.mainloop()
 
     print("Aligned.")
@@ -537,7 +546,8 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
     Potentially to be deleted eventually.
 
     To add:
-    Simple scaling and translation, based on the original two keypoints (which set the orientation).
+    Simple scaling and translation, based on the original
+    two keypoints (which set the orientation).
     With real time update/feedback.
 
     :param img:
@@ -549,10 +559,7 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
 
     keypoint_positions = ['Anterior midline',
                           'Posterior midline']
-    # 'Right anterolateral corner',
-    # 'Left anterolateral corner']
-
-    ### Load atlas.
+    # Load atlas.
     atlas, annotations, atlas_outline = load_atlas()
     do_manual_atlas_keypoint = False
     if do_manual_atlas_keypoint:
@@ -565,16 +572,14 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
             plt.plot(c[0][0], c[0][1], 'ro')
             atlas_coords.extend(c)
     else:
-        atlas_coords = [(98, 227),  # (83, 227)
+        atlas_coords = [(98, 227),
                         (348, 227)]
-        # (83, 303),
-        # (83, 151)] ### These numbers were taken from an initial manual selection.
         plt.figure(figsize=(30, 30))
         plt.imshow(atlas_outline)
         for cc in atlas_coords:
             plt.plot(cc[0], cc[1], 'ro')
 
-    ### Convert selected keypoints to array.
+    # Convert selected keypoints to array.
     atlas_coords_array = np.zeros((len(atlas_coords), 2))
     for ci, c in enumerate(atlas_coords):
         atlas_coords_array[ci, 0] = np.round(c[0])
@@ -594,11 +599,9 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
                 plt.plot(c[0][0], c[0][1], 'ro')
                 img_coords.extend(c)
         else:
-            ### These numbers are just for fast debugging.
+            # These numbers are just for fast debugging.
             img_coords = [(26, 297),
                           (430, 314)]
-            # (26, 187),
-            # (17, 420)]
             plt.figure(figsize=(30, 30))
             plt.imshow(img, cmap='Greys_r')
             for cc in img_coords:
@@ -606,7 +609,7 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
 
         plt.close('all')
 
-        ### Convert selected keypoints to array.
+        # Convert selected keypoints to array.
         img_coords_array = np.zeros((len(img_coords), 2))
         for ci, c in enumerate(img_coords):
             img_coords_array[ci, 0] = np.round(c[0])
@@ -619,7 +622,7 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
             do_debug=False
         )
 
-        ### Overlay atlas on image for checking that things look good.
+        # Overlay atlas on image for checking that things look good.
         overlay = overlay_atlas_outline(aligned_atlas_outline, img)
         plt.figure(figsize=(20, 20))
         plt.imshow(overlay, cmap='Greys_r')
@@ -632,7 +635,7 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
         if text == 'y':
             break
 
-    # ### Save out selections
+    # # Save out selections
     # keypoints_dir = os.path.join(self._keypoints_file, name, \
     #                              str(name) + '_source_extraction')
     # save_fname = os.path.join(keypoints_dir, 'keypoints.npz')
@@ -655,11 +658,4 @@ def run_align_atlas_gui_simple(img, atlas, fig_path):
     plt.imshow(overlay, cmap='Greys_r')
     plt.savefig(fig_path + '_overlay.png')
 
-    ### Do these need to be 'array's?
     return (atlas_coords_array, img_coords_array, aligned_atlas_outline, atlas)
-
-
-
-# TODO: Align a video to the atlas and overlay atlas (for display purposes
-# - don't do general processing with this). Potentially just faster to do this
-# in Keynote...

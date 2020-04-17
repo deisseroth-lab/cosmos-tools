@@ -126,7 +126,7 @@ def get_paths(base_path, valid_name, bad_name='source_extraction'):
 
         # Only process appropriately named files
         if valid_name in files:
-                input_folders.append(root + os.sep + valid_name)
+            input_folders.append(root + os.sep + valid_name)
     input_folders.sort()
     for root in input_folders:
         offset = len(root.split(os.sep)[-1])
@@ -171,11 +171,10 @@ if __name__ == '__main__':
         # Start MATLAB
         call(args.matlab + ' -nodesktop -nosplash -r \"' + args.cnmf +
              '(\'' + inp + '\'); exit;\"', shell=True)
-    
+
     # Reformat all output files
     print('Fixing MAT files...')
     call(args.matlab + ' -nodesktop -nosplash -r \"' + args.fixer +
          '(\'' + args.base + '\'); exit;\"', shell=True)
 
     print('All files analyzed.')
-

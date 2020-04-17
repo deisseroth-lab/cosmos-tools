@@ -25,7 +25,7 @@ def get_paths(base_path, valid_names, mouse, bad_name='source_extraction'):
             raise IOError('Intermediate results already exist!! Stopping.')
         for name in valid_names:
             if mouse in root and name in files:
-                    input_folders.append(root + os.sep + name)
+                input_folders.append(root + os.sep + name)
     input_folders.sort()
     for root in input_folders:
         offset = len(root.split(os.sep)[-1])

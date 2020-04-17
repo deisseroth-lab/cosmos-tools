@@ -16,30 +16,30 @@ from scipy.ndimage.filters import gaussian_filter1d
 from statsmodels.distributions.empirical_distribution import ECDF
 from statsmodels.stats.multitest import multipletests
 
-def load_clustering_results(dataset_id, sets, clustering_dir, protocol_as_key=False):
+
+def load_clustering_results(dataset_id, sets, clustering_dir,
+                            protocol_as_key=False):
     """
     Load struct containing results of clustering from cluster_analysis.ipynb.
 
     :param dataset_id: int.
     :param sets: list of dicts, each entry contains:
                  'method', 'protocol', 'randseed', 'n_components', 'l1'
-    :param clustering_dir: string. directory path of saved out clustering results.
-    :param protocol_as_key: bool. If false then just index into `all_results` using
-                            an integer id. If true then use the protocol of the set.
+    :param clustering_dir: string. directory path of saved out clustering.
+    :param protocol_as_key: bool. If false then just index into `all_results`
+                            with an integer id. If true then use the protocol
+                            of the set.
                             Assumes that each set uses a different 'protocol'.
-    :return: all_results: a dict containing the clustering results for each set in sets.
+    :return: all_results: a dict containing the clustering results.
     """
     print('Loading: ')
     all_results = dict()
     for i in range(len(sets)):
         s = sets[i]
-        filename = os.path.join(clustering_dir, '{}_{}_expt{}_r{}_n{}_l{}.pkl'.format(
-                                                                                   s['method'],
-                                                                                   s['protocol'],
-                                                                                   dataset_id,
-                                                                                   s['randseed'],
-                                                                                   s['n_components'],
-                                                                                   s['l1']))
+        filename = os.path.join(
+            clustering_dir, '{}_{}_expt{}_r{}_n{}_l{}.pkl'.format(
+                s['method'], s['protocol'], dataset_id, s['randseed'],
+                s['n_components'], s['l1']))
         with open(filename, 'rb') as f:
             clust_results = pickle.load(f)
         if protocol_as_key:
@@ -50,6 +50,7 @@ def load_clustering_results(dataset_id, sets, clustering_dir, protocol_as_key=Fa
         print(filename)
 
     return all_results
+
 
 def get_trial_sets(BD, use_all_trials=True):
     # Setup some analysis specific variables.
@@ -66,20 +67,21 @@ def get_trial_sets(BD, use_all_trials=True):
             min_block_trial = 7
             success = BD.success
 
+        mbt = min_block_trial
         lick_spout1 = np.logical_and.reduce((BD.go_trials.astype('bool'),
                                              success,
                                              BD.spout_positions == 1,
-                                             BD.ind_within_block >= min_block_trial,
+                                             BD.ind_within_block >= mbt,
                                              clean_trials))
         lick_spout3 = np.logical_and.reduce((BD.go_trials.astype('bool'),
                                              success,
                                              BD.spout_positions == 3,
-                                             BD.ind_within_block >= min_block_trial,
+                                             BD.ind_within_block >= mbt,
                                              clean_trials))
         lick_spout4 = np.logical_and.reduce((BD.go_trials.astype('bool'),
                                              success,
                                              BD.spout_positions == 4,
-                                             BD.ind_within_block >= min_block_trial,
+                                             BD.ind_within_block >= mbt,
                                              clean_trials))
         nolick = np.logical_and.reduce((~BD.go_trials.astype('bool'),
                                         success))
@@ -92,6 +94,7 @@ def get_trial_sets(BD, use_all_trials=True):
 
     return trial_sets, trial_names
 
+
 def plot_ordered_correlation_matrix(rates,
                                     ordering,
                                     do_zscore=True,
@@ -102,7 +105,7 @@ def plot_ordered_correlation_matrix(rates,
     Plot correlation matrix, ordered by clustering results.
 
     :param rates: [ncells, ntime, ntrials]
-    :param ordering: [ncells], the order of the rows/columns of the correlation matrix.
+    :param ordering: [ncells], order of the rows/columns of the corr matrix.
     :param do_zscore:
     :param clim:
     :return:
@@ -123,6 +126,7 @@ def plot_ordered_correlation_matrix(rates,
         plt.ylabel(ylabel)
     if xlabel is not None:
         plt.xlabel(xlabel)
+
 
 def get_pre_lick_sources(summed_licks, spike_rates,
                          task_classes,
@@ -170,10 +174,11 @@ def get_pre_lick_sources(summed_licks, spike_rates,
         mc = np.mean(class_licks, axis=0)
         lick_onset = np.min(np.where(mc > 0)[0])
 
-
-        frames_buffer = 2  # Add a buffer before the first lick to deal with the lick before the mouse actually reaches the spout
-        pre_lick_sources = np.logical_and(peak_times > earliest_frame,
-                                          peak_times < lick_onset - frames_buffer)
+        # Add a buffer before the first lick to deal with the lick
+        # before the mouse actually reaches the spout
+        buff = 2
+        pre_lick_sources = np.logical_and(
+            peak_times > earliest_frame, peak_times < lick_onset - buff)
 
         source_ids.extend(list(sources[np.where(pre_lick_sources)[0]]))
         num_pre_lick = np.sum(pre_lick_sources)
@@ -190,7 +195,6 @@ def get_pre_lick_sources(summed_licks, spike_rates,
             print(source_ids)
 
     return source_ids, corresponding_task_classes, total_class_sources
-
 
 
 def get_sources_more_active_pre_vs_post(traces, trial_sets,
@@ -216,8 +220,6 @@ def get_sources_more_active_pre_vs_post(traces, trial_sets,
     :return:
         sorted_sig_cells: ID of significant cells, sorted by pvalue
     """
-
-
     tt = dict()
     tt['pre'] = traces[:, t_ranges['pre'], :]
     tt['post'] = traces[:, t_ranges['post'], :]
@@ -230,9 +232,8 @@ def get_sources_more_active_pre_vs_post(traces, trial_sets,
     for key in tt.keys():
         trial_means[key] = np.mean(tt[key], axis=2)
 
-
     trials_p = []
-    mds = [] # Mean difference between pre/post
+    mds = []  # Mean difference between pre/post
     for ind, trial_set in enumerate(trial_sets):
         if trials_to_use is None:
             which_trials = trial_set
@@ -256,19 +257,20 @@ def get_sources_more_active_pre_vs_post(traces, trial_sets,
 
     # sig = np.max(all_sig, axis=0)
     # sig_cells = np.where(sig)[0]
-    sig_cells = np.where(how_many_sig > 0)[0] ## Select a source if any trial types are significant.
+    # Select a source if any trial types are significant.
+    sig_cells = np.where(how_many_sig > 0)[0]
     sorted_sig_cells = sig_cells[np.argsort(p[sig_cells])]
 
     return sorted_sig_cells
 
 
 def get_sources_decrease_on_go_and_flat_on_nogo(which_cells,
-                                               traces,
-                                               go_trials,
-                                               nogo_trials,
-                                               ranges,
-                                               use_std_thresh=True,
-                                               do_plot=True):
+                                                traces,
+                                                go_trials,
+                                                nogo_trials,
+                                                ranges,
+                                                use_std_thresh=True,
+                                                do_plot=True):
     """
     Get sources whose activity decreases on go_trials but
     is flat (or increases) on nogo_trials, when comparing the
@@ -286,8 +288,6 @@ def get_sources_decrease_on_go_and_flat_on_nogo(which_cells,
     :return: good_cells: list of IDs of sources that meet
                          the criteria.
     """
-
-
     good_cells = []
     for i in which_cells:
         go_trace = np.mean(traces[i, :, go_trials], axis=0).T
@@ -323,12 +323,13 @@ def get_sources_decrease_on_go_and_flat_on_nogo(which_cells,
                 plt.plot(go_trace, 'r')
                 plt.plot(nogo_trace, 'b')
 
-                plt.title('{} --- Go: {:.3f}, {:.3f}, nogo: {:.3f}, {:.3f}'.format(
-                    is_good_cell,
-                    means['go'][0],
-                    means['go'][1],
-                    means['nogo'][0],
-                    means['nogo'][1]))
+                plt.title(
+                    '{} --- Go: {:.3f}, {:.3f}, nogo: {:.3f}, {:.3f}'.format(
+                        is_good_cell,
+                        means['go'][0],
+                        means['go'][1],
+                        means['nogo'][0],
+                        means['nogo'][1]))
 
     return good_cells
 
@@ -353,6 +354,7 @@ def plot_centroids(which_cells, CT, max_radius=3):
                              CT.atlas_tform,
                              max_radius=max_radius,
                              rotate90=True)
+
 
 def plot_pre_lick_sources(lick_rates, spike_rates,
                           task_classes, trial_sets,
@@ -379,7 +381,7 @@ def plot_pre_lick_sources(lick_rates, spike_rates,
     pre_lick_trials = np.sum(summed_licks[:, :latest_frame], axis=1) > 0
     no_pre_lick_trials = ~pre_lick_trials
 
-    ### Get sources which exhibit pre-lick firing
+    # Get sources which exhibit pre-lick firing
     (source_ids,
      corresponding_classes,
      total_class_sources) = get_pre_lick_sources(summed_licks, spike_rates,
@@ -390,14 +392,11 @@ def plot_pre_lick_sources(lick_rates, spike_rates,
                                                  earliest_frame)
 
     total_pre_lick = len(source_ids)
-    print('{} -- Fraction pre lick: {}/{} --> {:.4f}'.format(save_dir,
-                                                             total_pre_lick,
-                                                             total_class_sources,
-                                                             total_pre_lick / total_class_sources))
+    print('{} -- Fraction pre lick: {}/{} --> {:.4f}'.format(
+        save_dir, total_pre_lick, total_class_sources,
+        total_pre_lick / total_class_sources))
 
-    ### Plot each source for all trial types
-
-
+    # Plot each source for all trial types
     color_template = get_color_template()
 
     for s, cc in zip(source_ids, corresponding_classes):
@@ -423,11 +422,12 @@ def plot_pre_lick_sources(lick_rates, spike_rates,
             plt.subplot(4, 1, ind+1)
             plt.imshow(
                 gaussian_filter1d(class_rates, 1.5, axis=1,
-                                         mode='constant'),
+                                  mode='constant'),
                 cmap='gray_r',
                 aspect='auto',
                 extent=[0, class_rates.shape[1]/fps, 0, class_rates.shape[0]])
-            plt.plot(onsets/fps, np.arange(len(onsets))+0.5, 'r.', markersize=1)
+            plt.plot(onsets/fps,
+                     np.arange(len(onsets))+0.5, 'r.', markersize=1)
             plt.axvline(earliest_frame/fps, color='k', linestyle='--')
             plt.ylabel('Trial')
             plt.xlim([0, 6])
@@ -446,28 +446,12 @@ def plot_pre_lick_sources(lick_rates, spike_rates,
         plt.axvline(earliest_frame/fps, color='k', linestyle='--')
         plt.suptitle('Source {}, class {}'.format(s, cc))
 
-
         if save_dir is not None:
             savename = 'source_{}.pdf'.format(s)
             plt.gcf().set_size_inches(w=2.5,
-                                      h=3.5)  # Control size of figure in inches
+                                      h=3.5)  # Control size of figure in inch
             plt.savefig(os.path.join(save_dir, savename),
                         transparent=True, rasterized=True, dpi=600)
-
-
-            # source_ids = np.hstack(source_ids)
-        # source_coloring = np.ones(
-        #     (len(all_nmf['mr2']['ordered_super_clustering']), 4))
-        # RGBA = np.copy(np.squeeze(source_coloring))
-        # RGBA[:, :] = np.array([0.9, 0.9, 0.9, 0.3])
-        # RGBA[source_ids, :] = np.array([1, 0, 0, 1])
-        #
-        # plt.figure()
-        # utils.centroids_on_atlas(RGBA, np.arange(RGBA.shape[0]),
-        #                          all_nmf['mr2']['centroid_atlas_coords'],
-        #                          None,
-        #                          max_radius=10,
-        #                          rotate90=True)
 
 
 def get_task_clusters_per_region(all_dataset_names, allCT, sets,
@@ -481,14 +465,13 @@ def get_task_clusters_per_region(all_dataset_names, allCT, sets,
                               corresponding to allCT. i.e. [7, 11, 18, 19]
     :param allCT: all datasets loaded in the notebook.
     :param sets: dict specifying the parameters of the clustering.
-                 i.e. {'method':'classify', 'protocol':'mr2', 'randseed':'', 'n_components':'', 'l1':''}
     :param which_datasets: which of all loaded datasets to load.
     :param clustering_dir: where clustering files are saved out.
     :return: all_clusters_region_dist: dict. keys: dataset_id, vals: dict.
-                                                  keys: cluster_id. vals: dict.
-                                                       keys: region_name, val: # sources
+                                keys: cluster_id. vals: dict.
+                                keys: region_name, val: # sources
              all_total_cells_per_region: dict. keys: dataset_id, vals: dict.
-                                                    keys: region_name, val: # sources
+                                keys: region_name, val: # sources
     """
     all_clusters_region_dist = {}
     all_total_cells_per_region = {}
@@ -502,7 +485,7 @@ def get_task_clusters_per_region(all_dataset_names, allCT, sets,
 
         region_names = allCT[CT_ind_spatial].regions
         regions_of_cells = np.array(allCT[CT_ind_spatial].region_of_cell)
-        clust_assignments = all_nmf_spatial['mr2']['ordered_super_clustering'] ### Should probably make this depend on 'sets'.
+        clust_assignments = all_nmf_spatial['mr2']['ordered_super_clustering']
 
         (clusters_region_dist,
          total_cells_per_region) = get_task_cluster_cells_per_region(
@@ -524,17 +507,19 @@ def load_centroids_and_task_labels(all_dataset_names, allCT, sets,
                               corresponding to allCT. i.e. [7, 11, 18, 19]
     :param allCT: all datasets loaded in the notebook.
     :param sets: dict specifying the parameters of the clustering.
-                 i.e. {'method':'classify', 'protocol':'mr2', 'randseed':'', 'n_components':'', 'l1':''}
+        i.e. {'method':'classify', 'protocol':'mr2', 'randseed':'',
+              'n_components':'', 'l1':''}
     :param which_datasets: which of all loaded datasets to load.
     :param clustering_dir: where clustering files are saved out.
     :return: all_clusters_region_dist: dict. keys: dataset_id, vals: dict.
                                                   keys: cluster_id. vals: dict.
-                                                       keys: region_name, val: # sources
+                                            keys: region_name, val: # sources
              all_total_cells_per_region: dict. keys: dataset_id, vals: dict.
-                                                    keys: region_name, val: # sources
+                                        keys: region_name, val: # sources
     """
-    mm_per_pixel = 0.01375  ### 11um pixels with 40/50 demagnification.
-                            ### Verified with USAF calibration target (20180612).
+    mm_per_pixel = 0.01375
+    # 11um pixels with 40/50 demagnification.
+    # Verified with USAF calibration target (20180612).
 
     all_centroids = {}
     all_labels = {}
@@ -546,7 +531,7 @@ def load_centroids_and_task_labels(all_dataset_names, allCT, sets,
                                                   clustering_dir,
                                                   protocol_as_key=True)
 
-        clust_assignments = all_nmf_spatial['mr2']['ordered_super_clustering'] ### Should probably make this depend on 'sets'.
+        clust_assignments = all_nmf_spatial['mr2']['ordered_super_clustering']
         centroids = allCT[CT_ind_spatial].centroids*mm_per_pixel
         print('Converting pixels to mm.')
 
@@ -583,15 +568,16 @@ def organize_clusters_per_region(which_dsets,
         for c_ind, clust in enumerate(clusts):
             for r_ind, region in enumerate(regions):
                 all_spatial_dist[d_ind, c_ind, r_ind] = \
-                all_clusters_region_dist[dset][clust][region]
+                    all_clusters_region_dist[dset][clust][region]
 
     for d_ind, dset in enumerate(which_dsets):
         for c_ind, clust in enumerate(clusts):
             for r_ind, region in enumerate(regions):
                 all_total_cells[d_ind, c_ind, r_ind] = \
-                all_total_cells_per_region[dset][region]
+                    all_total_cells_per_region[dset][region]
 
     return (all_spatial_dist, all_total_cells)
+
 
 def plot_clusters_per_region(all_spatial_dist,
                              all_total_cells,
@@ -605,7 +591,7 @@ def plot_clusters_per_region(all_spatial_dist,
     """Make barchart plot of results from organize_clusters_per_region(),
     averaging across mice (datasets).
 
-    :param start_cluster: int. If you want to exclude cluster 0, then set this to 1.
+    :param start_cluster: int. If you want to exclude cluster 0, set=1.
     """
     vals = np.copy(all_spatial_dist)
     if do_normalize:
@@ -616,13 +602,14 @@ def plot_clusters_per_region(all_spatial_dist,
 
     if not group_by_region:
         nregions = len(regions)
-        r = np.arange(all_spatial_dist.shape[1] - start_cluster) - bar_width*nregions/2
+        r = np.arange(
+            all_spatial_dist.shape[1] - start_cluster) - bar_width*nregions/2
         plot_handles = []
         for i in range(nregions):
             p = plt.bar(r, d_means[start_cluster:, i],
-                         color=group_colors[i],
-                         width=bar_width,
-                         yerr=d_err[start_cluster:, i])
+                        color=group_colors[i],
+                        width=bar_width,
+                        yerr=d_err[start_cluster:, i])
             r = [x + bar_width for x in r]
             plot_handles.append(p)
 
@@ -687,10 +674,11 @@ def summarize_corr_trial_avg_vs_single_trial(data_info, allCT,
     Plot the spatial location of the seed and neighbor.
 
     :param data_info: dict. Must contain keys 'dataset_id', 'which_source',
-                      'window_size', 'partner_index', 'traces_ylim', 'corr_ylim'.
+        'window_size', 'partner_index', 'traces_ylim', 'corr_ylim'.
     :param allCT: list containing CosmosTraces objects for all loaded datasets.
     :param all_centroids: output from load_centroids_and_task_labels().
-    :param datasets: List specifying the ordering of datasets in allCT and all_centroids.
+    :param datasets: List specifying the ordering of
+        datasets in allCT and all_centroids.
     :param fig_save_dir: If not None, location for saving figures.
     :return:
     """
@@ -714,7 +702,7 @@ def summarize_corr_trial_avg_vs_single_trial(data_info, allCT,
     CT = allCT[CT_ind]
     centroids = all_centroids[dataset_id]
 
-    ### Compute correlation between sources. ###
+    # Compute correlation between sources.
     (all_c, all_d, all_p,
      all_source_ids, smoothed_spikes) = get_all_correlation_vs_dist(
          ['full', '4way'],
@@ -725,7 +713,7 @@ def summarize_corr_trial_avg_vs_single_trial(data_info, allCT,
          do_zscore=False,
          return_flattened=False)
 
-    ### Now make plots of correlation map for the specified source. ###
+    # Now make plots of correlation map for the specified source.
     cell_id = all_source_ids['full'][which_source]
     savename = 'id' + str(dataset_id) + '_corr_vs_dist_{}'.format(cell_id)
 
@@ -751,8 +739,7 @@ def summarize_corr_trial_avg_vs_single_trial(data_info, allCT,
         plt.savefig(os.path.join(savedir, savename + '_traces.pdf'),
                     transparent=True, rasterized=True, dpi=600)
 
-
-    ### Plot trace of seed and neighbor source from a small time window. ###
+    # Plot trace of seed and neighbor source from a small time window.
     flat_smooth_spikes = utils.flatten_traces(smoothed_spikes)
     flat_spikes = utils.flatten_traces(CT.St)
     flat_fluor = utils.flatten_traces(CT.Ft)
@@ -767,7 +754,8 @@ def summarize_corr_trial_avg_vs_single_trial(data_info, allCT,
     traces_to_corr = flat_smooth_spikes
 
     if fig_save_dir is not None:
-        savedir = os.path.join(fig_save_dir, str(dataset_id), str(partner_index))
+        savedir = os.path.join(
+            fig_save_dir, str(dataset_id), str(partner_index))
         os.makedirs(savedir, exist_ok=True)
     else:
         savedir = None
@@ -797,9 +785,6 @@ def summarize_corr_trial_avg_vs_single_trial(data_info, allCT,
                     transparent=True, rasterized=True, dpi=600)
 
 
-
-
-
 def get_all_correlation_vs_dist(which_settings,
                                 CT, centroids,
                                 which_hemisphere,
@@ -819,14 +804,18 @@ def get_all_correlation_vs_dist(which_settings,
     :param do_zscore: bool. Zscore traces.
     :param returned_flattened:
     :return:
-    all_c: dict. keys are which_settings. val is the correlation matrices across all sources.
-    all_d: dict. keys are which_settings. val is a matrix the distances between all sources.
-    all_p: dict. keys are which_settings. val is the pvalue for each correlation.
-    all_source_ids: dict. keys are which_settings. val a list of the source_id corresponding to
-                    each row of the correlation matrix.
-    smoothed_spikes: the processed traces used for computing the correlation. This is returned so
-                     that you can use those exact traces for subsequent computation.
-
+    all_c: dict. keys are which_settings.
+        val is the correlation matrices across all sources.
+    all_d: dict. keys are which_settings.
+        val is a matrix the distances between all sources.
+    all_p: dict. keys are which_settings.
+        val is the pvalue for each correlation.
+    all_source_ids: dict. keys are which_settings.
+        val a list of the source_id corresponding to
+        each row of the correlation matrix.
+    smoothed_spikes: the processed traces used for computing the correlation.
+        This is returned so
+        that you can use those exact traces for subsequent computation.
     """
     all_c = dict()
     all_d = dict()
@@ -867,8 +856,8 @@ def get_correlation_vs_dist(CT, centroids, which_traces,
     :param do_binarize: bool. If True, will binarize spikes.
     :param do_zscore: Zscore the traces before computing the correlation.
     :param return_flattened: bool. Flatten the correlation matrices.
-    :param return_spikes: bool. Return the processed traces (i.e. smoothed spikes)
-                          used for actually computing the correlation.
+    :param return_spikes: bool. Return the processed traces
+        (i.e. smoothed spikes) used for actually computing the correlation.
     :return:
         c: [num_centroid_pairs], correlation between each pair
         d: [num_centroid_pairs], distance between each pair
@@ -881,16 +870,13 @@ def get_correlation_vs_dist(CT, centroids, which_traces,
 
     smooth_spikes = gaussian_filter1d(spikes, 1.5, axis=1, mode='constant')
     trial_sets, trial_names = get_trial_sets(CT.bd)
-
-
     rates = smooth_spikes
     if which_traces == 'full':
-        rates_flat = np.reshape(rates,
-                                (rates.shape[0], rates.shape[1]*rates.shape[2]),
-                                order='F')
+        rates_flat = np.reshape(
+            rates, (rates.shape[0], rates.shape[1]*rates.shape[2]), order='F')
     elif which_traces == '4way':
         rates_flat = concatenate_trial_type_avgs(trial_sets, rates,
-                                                    do_plot=False)
+                                                 do_plot=False)
     else:
         raise NotImplementedError('{} not implemented'.format(which_traces))
 
@@ -902,7 +888,6 @@ def get_correlation_vs_dist(CT, centroids, which_traces,
     corr, p_corr = scipy.stats.spearmanr(rates_flat, axis=1)
 
     dists = scipy.spatial.distance.cdist(centroids, centroids, 'euclidean')
-
 
     # Extract sources from specified hemisphere
     if which_hemisphere is not None:
@@ -924,13 +909,14 @@ def get_correlation_vs_dist(CT, centroids, which_traces,
         d = which_dists
         p = which_p
 
-
     if return_spikes:
         return c, d, p, which_sources, smooth_spikes
     else:
         return c, d, p, which_sources
 
-def summarize_binned_correlation_vs_dist(all_c, all_d, bin_range, bin_size, use_abs_val=True):
+
+def summarize_binned_correlation_vs_dist(
+        all_c, all_d, bin_range, bin_size, use_abs_val=True):
     """
     Summarize correlation vs. distance by binning all source-pairs
     based on their distance, and computing the mean and sem of
@@ -975,6 +961,7 @@ def summarize_binned_correlation_vs_dist(all_c, all_d, bin_range, bin_size, use_
 
     return all_m, all_s, bins
 
+
 def plot_correlation_vs_dist(all_m, all_s, bins, do_normalize=True,
                              colors=None):
     """
@@ -1017,10 +1004,12 @@ def plot_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
                                         max_radius=10,
                                         do_pthresh=False, do_valthresh=False,
                                         use_abs_val=True, do_save=True,
-                                        fig_save_dir=None, smoothed_spikes=None,
+                                        fig_save_dir=None,
+                                        smoothed_spikes=None,
                                         bin_range=[0.15, 6], bin_size=0.5):
     """
-    Plot seeded correlation for a specific source, for trial-averaged and single-trial correlations.
+    Plot seeded correlation for a specific source,
+        for trial-averaged and single-trial correlations.
     Plot the raw correlation vs distance.
     Plot the single trial traces, divided by trial type.
 
@@ -1035,7 +1024,8 @@ def plot_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
     :param use_abs_val:
     :param do_save:
     :param fig_save_dir:
-    :param smoothed_spikes: Optionally provide precomputed smoothed_spikes (for efficiency)
+    :param smoothed_spikes: Optionally provide precomputed
+        smoothed_spikes (for efficiency)
     :return:
     """
 
@@ -1043,22 +1033,22 @@ def plot_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
     savename = 'id' + str(dataset_id) + '_corr_vs_dist_{}'.format(cell_id)
 
     compare_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
-                                              all_c, all_d, all_p,
-                                              all_source_ids,
-                                              max_radius=10,
-                                              do_pthresh=False,
-                                              do_valthresh=False,
-                                              use_abs_val=True,
-                                              bin_range=bin_range,
-                                              bin_size=bin_size)
-
+                                           all_c, all_d, all_p,
+                                           all_source_ids,
+                                           max_radius=10,
+                                           do_pthresh=False,
+                                           do_valthresh=False,
+                                           use_abs_val=True,
+                                           bin_range=bin_range,
+                                           bin_size=bin_size)
 
     if do_save and fig_save_dir is not None:
         plt.gcf().set_size_inches(w=5, h=4)
         plt.savefig(fig_save_dir + savename + '.pdf', transparent=True,
                     rasterized=True, dpi=600)
 
-    plot_formatted_cell_across_trials_wrapper(cell_id, CT, ylims_avg=None, smoothed_spikes=smoothed_spikes)
+    plot_formatted_cell_across_trials_wrapper(
+        cell_id, CT, ylims_avg=None, smoothed_spikes=smoothed_spikes)
     if do_save and fig_save_dir is not None:
         plt.gcf().set_size_inches(w=0.75, h=1.3)
         plt.savefig(fig_save_dir + savename + '_traces.pdf', transparent=True,
@@ -1066,13 +1056,18 @@ def plot_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
 
     print(fig_save_dir)
 
+
 def compare_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
                                            all_c, all_d, all_p, all_source_ids,
                                            max_radius=50,
-                                           do_pthresh=False, do_valthresh=False, use_abs_val=True,
-                                           bin_range=[0.15, 6], bin_size=0.5, ylim=[0, 0.5]):
+                                           do_pthresh=False,
+                                           do_valthresh=False,
+                                           use_abs_val=True,
+                                           bin_range=[0.15, 6],
+                                           bin_size=0.5, ylim=[0, 0.5]):
     """
-    Plot seeded correlation for a specific source, for trial-averaged and single-trial correlations.
+    Plot seeded correlation for a specific source, for trial-averaged
+        and single-trial correlations.
     Plot the raw correlation vs distance.
 
     :param which_neuron:
@@ -1087,7 +1082,7 @@ def compare_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
     :return:
     """
 
-    all_ms = dict() # All means across trialavg/singletrial
+    all_ms = dict()  # All means across trialavg/singletrial
 
     fig = plt.figure(figsize=(10, 8))
     gs = []
@@ -1107,8 +1102,10 @@ def compare_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
         pthresh = 1e-3 if do_pthresh else None
         valthresh = 0.5 if do_valthresh else None
 
-        corrs[which_source] = 0.01 # Zero out the seed neuron so it does not obstruct the view
-        corrs = thresh_corrs(corrs, pvals, pthresh=pthresh, valthresh=valthresh)
+        # Zero out the seed neuron so it does not obstruct the view
+        corrs[which_source] = 0.01
+        corrs = thresh_corrs(
+            corrs, pvals, pthresh=pthresh, valthresh=valthresh)
         normed_corrs = corrs/np.nanmax(corrs)
 
         # Plot the spatial distribution
@@ -1118,7 +1115,8 @@ def compare_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
         plt.subplot(gs[iter])
         CT.centroids_on_atlas(normed_corrs, source_ids, max_radius=max_radius,
                               set_alpha=True, highlight_inds=[which_source])
-        plt.title('{}: {} ({})'.format(dataset_id, source_ids[which_source], which_source))
+        plt.title('{}: {} ({})'.format(
+            dataset_id, source_ids[which_source], which_source))
 
         # Now summarize correlation vs. distance
         if use_abs_val:
@@ -1144,13 +1142,14 @@ def compare_corr_trial_avg_vs_single_trial(which_source, CT, dataset_id,
             plt.ylabel('|correlation|')
         plt.xlabel('Separation distance (mm)')
 
-        all_ms[key] = all_m # Log for final summary plot
+        all_ms[key] = all_m  # Log for final summary plot
 
 
-
-def plot_formatted_cell_across_trials_wrapper(cell_id, CT, ylims_avg=[0, 7], smoothed_spikes=None):
+def plot_formatted_cell_across_trials_wrapper(
+        cell_id, CT, ylims_avg=[0, 7], smoothed_spikes=None):
     """
-    Wrapper to simplfiy call to trace_analysis_utils.plot_formatted_cell_across_trials.
+    Wrapper to simplfiy call to
+        trace_analysis_utils.plot_formatted_cell_across_trials.
 
     :param cell_id: global id of the source (i.e. index into CT)
     :param CT: CosmosTraces object.
@@ -1160,7 +1159,8 @@ def plot_formatted_cell_across_trials_wrapper(cell_id, CT, ylims_avg=[0, 7], smo
 
     lick_onsets = utils.get_lick_onsets(CT.bd.spout_lick_rates)
     if smoothed_spikes is None:
-        smoothed_spikes = gaussian_filter1d(CT.St, 1.5, axis=1, mode='constant') ## This is inefficient to call every time, but convenient for now...
+        smoothed_spikes = gaussian_filter1d(
+            CT.St, 1.5, axis=1, mode='constant')
 
     trial_sets, names = get_trial_sets(CT.bd, use_all_trials=True)
     trial_colors = ['orange', 'c', 'r', 'g']
@@ -1176,6 +1176,7 @@ def plot_formatted_cell_across_trials_wrapper(cell_id, CT, ylims_avg=[0, 7], smo
                                             ylims_trials=[0, 25],
                                             ylims_avg=ylims_avg)
 
+
 def plot_cluster_spread_comparison(all_clust, keys,
                                    min_clust_size=5, do_plot=True):
     """
@@ -1183,23 +1184,25 @@ def plot_cluster_spread_comparison(all_clust, keys,
     Compare clusterings defined by 'keys', which indexes
     into all_clust, which is a dict containing clustering results.
 
-    :param all_clust: dict. each entry is a clustering result with certain parameters.
+    :param all_clust: dict.
+        entries are clustering results with certain parameters.
     :param keys: list of strings. which clustering results to compare/overlay.
     :param min_clust_size: int. only include clusters that contain a minimum
                            number of sources.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        
+
         colors = [(1, 0, 1, 0.7),
                   (1, 0.5, 0, 0.7)]
         clust_spreads = {}
         for ind, key in enumerate(keys):
             med_cluster_spread, _ = compute_cluster_spread(
-                                                    all_clust[key]['ordered_clustering'],
-                                                    all_clust[key]['centroid_atlas_coords'],
-                                                    do_split_hemispheres=False)
-            clust_size = compute_cluster_sizes(all_clust[key]['ordered_clustering'])
+                all_clust[key]['ordered_clustering'],
+                all_clust[key]['centroid_atlas_coords'],
+                do_split_hemispheres=False)
+            clust_size = compute_cluster_sizes(
+                all_clust[key]['ordered_clustering'])
             clust_spread = med_cluster_spread[clust_size > min_clust_size]
             clust_spreads[key] = clust_spread
 
@@ -1208,9 +1211,10 @@ def plot_cluster_spread_comparison(all_clust, keys,
                          density=True, bins=np.linspace(0, 120, 15))
 
         if do_plot:
-            handles = [plt.Rectangle((0, 0), 1, 1, color=c, ec="k") for c in colors]
+            handles = [
+                plt.Rectangle((0, 0), 1, 1, color=c, ec="k") for c in colors]
             labels = keys
-            plt.xlabel('Median cluster spread, distance [au]')  ### ---> TODO: Put this in terms of mm based on the atlas?
+            plt.xlabel('Median cluster spread, distance [au]')
             plt.ylabel('Probability')
             plt.xticks([0, 50, 100])
             legend = plt.legend(handles, labels, frameon=False,
@@ -1236,16 +1240,11 @@ def concatenate_trial_type_avgs(trial_sets, rates, do_plot=False,
     for trial_set in trial_sets:
         trial_inds = np.where(trial_set)[0]
         if get_first_half:
-            # trial_inds = trial_inds[:int(len(trial_inds) / 2)]
             trial_inds = trial_inds[0::2]
         elif get_second_half:
-            # trial_inds = trial_inds[int(len(trial_inds) / 2):]
             trial_inds = trial_inds[1::2]
-
-        # type_means.append(np.mean(rates[:, :, trial_set], axis=2))
         type_means.append(np.mean(rates[:, :, trial_inds], axis=2))
     type_mean = np.hstack(type_means)
-
 
     if do_plot:
         plt.figure(figsize=(10, 10))
@@ -1300,7 +1299,7 @@ def get_cluster_explained_variances(rates, which_traces, all_nmf, trial_sets):
         traces = baseline_flat
     elif which_traces == 'full':
         rates_flat = np.reshape(rates, (
-        rates.shape[0], rates.shape[1] * rates.shape[2]), order='F')
+            rates.shape[0], rates.shape[1] * rates.shape[2]), order='F')
         traces = rates_flat
 
     evrs = {}
@@ -1310,6 +1309,7 @@ def get_cluster_explained_variances(rates, which_traces, all_nmf, trial_sets):
         evrs[clust] = utils.explained_variance_of_basis(traces, cluster_basis)
 
     return evrs
+
 
 def factorize_data(data, n_components, method='NMF', do_plot=False, randseed=1,
                    l1_ratio=0.0):
@@ -1330,19 +1330,20 @@ def factorize_data(data, n_components, method='NMF', do_plot=False, randseed=1,
     """
     X = data
     if method == 'NMF':
-        model = NMF(n_components=n_components, verbose=0, random_state=randseed,
-                    l1_ratio=l1_ratio, alpha=l1_ratio)
+        model = NMF(n_components=n_components, verbose=0,
+                    random_state=randseed, l1_ratio=l1_ratio, alpha=l1_ratio)
         W = model.fit_transform(X.T)
         H = model.components_
         evr = utils.explained_variance_of_basis(X, H.T)
     else:
-        raise('method {} not yet implemented in factorize_data().'.format(method))
+        raise('method {} not yet implemented in factorize_data().'.format(
+            method))
 
     if do_plot:
         plt.figure(figsize=(10, 5))
         plt.subplot(1, 2, 1)
         plt.plot(
-            evr[np.argsort(-evr)],'r')
+            evr[np.argsort(-evr)], 'r')
         plt.title('Explained variance')
         plt.xlabel('basis #')
         plt.subplot(1, 2, 2)
@@ -1360,7 +1361,6 @@ def factorize_data(data, n_components, method='NMF', do_plot=False, randseed=1,
         plt.subplot(2, 1, 2)
         plt.plot(Z[:100, 0], 'r')
         plt.title('True trace')
-
 
     return model, H, W, evr
 
@@ -1384,6 +1384,7 @@ def hierarchical_cluster(data, n_clusters):
 
     return clustering, Z
 
+
 def cluster_from_factorization(H, W, data_to_recompute_cluster_means=None):
     """
     Assign each cell to a cluster based on the output
@@ -1394,8 +1395,8 @@ def cluster_from_factorization(H, W, data_to_recompute_cluster_means=None):
     :param H: [clusters x cells]. Weight of each cell in a cluster.
     :param W: [time x clusters]. The time series of each cluster.
     :param data_to_recompute_cluster_means: Optional. Set to None to exclude.
-                If None, then will simply use the NMF output W as the time series
-                for each cluster.
+                If None, then will simply use the NMF output W as the time
+                series for each cluster.
                 Alternatively, you can compute a slightly different
                 time series by applying the factorized basis to the
                 full time series and then averaging within each trial type.
@@ -1403,14 +1404,15 @@ def cluster_from_factorization(H, W, data_to_recompute_cluster_means=None):
                     model - the learned sklearn model
                     rates_unaveraged - [ncells, ntime] (the full time series)
                     trial_sets - list of boolean arrays each of length ntrials.
-                             each array indicates which trials are included in that
+                             each array indicates which trials are included in
                              set of trials.
                     ntrials - number of total trials
                     trial_ntime - number of frames in each trial
                 i.e.:
-                recompute_clusts = {'model':model, 'rates_unaveraged':rates_flat,
-                                    'trial_sets':reduced_trial_sets,
-#                                   'ntrials':CT.ntrials, 'trial_ntime':CT.St.shape[1]}
+                recompute_clusts = {
+                    'model':model, 'rates_unaveraged':rates_flat,
+                    'trial_sets':reduced_trial_sets,
+                    ntrials':CT.ntrials, 'trial_ntime':CT.St.shape[1]}
 
     """
     if data_to_recompute_cluster_means is not None:
@@ -1434,9 +1436,8 @@ def cluster_from_factorization(H, W, data_to_recompute_cluster_means=None):
     else:
         clust_means = W.T
 
-    clustering = np.argmax(H, axis=0)  ## Cluster neurons by assigning to nmf basis
-                                       ## with the largest weight.
-                                       ## Potentially, you could do better than this.
+    # Cluster neurons by assigning to nmf basis with the largest weight.
+    clustering = np.argmax(H, axis=0)
 
     return clustering, clust_means
 
@@ -1448,11 +1449,11 @@ def order_clusters(clust_means, do_plot=True, vertical_lines=None,
     Order clusters by peak-time of the cluster time series.
     :param clust_means: [nclusters x ntime]. The time series of each cluster.
     :param do_plot: bool. Optionally plot the ordered clusters.
-    :param vertical_lines: None or list of ints. Optionally draw vertical lines.
+    :param vertical_lines: None or list of ints. Option to draw vertical lines.
     :param trange: np.array of frames.
                    If not None, then only computes ordering based off
                    the signal in the provided range of frames.
-    :return ordering: [nclusters]. ordering[0] is the new position of cluster 0.
+    :return ordering: [nclusters]. ordering[0] is new position of cluster 0.
     """
     if trange is None:
         trange = np.arange(clust_means.shape[1])
@@ -1487,8 +1488,8 @@ def plot_cluster_member_traces(rates, clustering, which_cluster, which_trials,
     :param clustering: [ncells] A cluster assignment for each source.
     :param which_cluster: int. ID of the cluster to plot.
     :param which_trials: int or list. which trials to plot.
-    :param event_frames: list of floats. Frame number of task events for one trial,
-                         i.e. [trial_start, odor_start, reward_onset].
+    :param event_frames: list of floats. Frame number of task events
+        for one trial, i.e. [trial_start, odor_start, reward_onset].
     :param cmap: string. name of the colormap to use.
     """
 
@@ -1503,7 +1504,8 @@ def plot_cluster_member_traces(rates, clustering, which_cluster, which_trials,
     plt.title(which_trials)
     if event_frames is not None:
         for e in event_frames:
-            [plt.axvline(x + e, color='r', linewidth=0.5) for x in trial_starts]
+            [plt.axvline(
+                x + e, color='r', linewidth=0.5) for x in trial_starts]
     return trial_rates
 
 
@@ -1521,7 +1523,7 @@ def plot_cluster_means_across_trials(rates, clustering, which_cluster,
                        each trial is included in that trial type.
     :param trial_set_names: tuple of ntrial_types strings. The name of
                             each trial type.
-    :param event_frames: list of floats. Frame number of task events for one trial,
+    :param event_frames: list of floats. Frame of task events for a trial,
                          i.e. [trial_start, odor_start, reward_onset].
     :param cmap: string. name of the colormap to use.
     """
@@ -1563,18 +1565,8 @@ def plot_cluster_means_across_trials(rates, clustering, which_cluster,
             plt.ylabel('trial')
 
 
-#         mean_trace = np.mean(W_trial[pc,:,np.where(trial_sets[i])[0]], axis=0)
-#         mean_traces.append(mean_trace)
-#         if show_trace:
-#             plt.subplot(gs[i+nstart])
-#             plt.plot(mean_trace)
-#             [plt.axvline(ef,  color='r', linewidth=1, alpha=0.5) for ef in event_frames]
-#             plt.ylim([0, maxy])
-
-
-#     return mean_traces
-
-def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
+def generate_super_clusters(
+        protocol, clust_means, event_frames, trial_nframes):
     """
     Assigns clusters to super-clusters, one hierarchical level higher.
     These super-clusters are defined based on specific aspects of the task,
@@ -1584,7 +1576,7 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
     :param protocol: string. Defines how to generate superclusters.
                      Options: '2way', '4way', 'oeg2way'.
     :param clust_means: [nclust x ntime] The time series of each cluster.
-    :param event_frames: list of floats. Frame number of task events for one trial,
+    :param event_frames: list of floats. Frame of task events for a trial,
                          i.e. [trial_start, odor_start, reward_onset].
     :param trial_nframes: int. Number of frames in one trial.
 
@@ -1595,7 +1587,7 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
     """
 
     if protocol == '2way':
-        odor_buffer = 3 ## Include a few frames past odor onset (before motor initiation).
+        odor_buffer = 3  # Include a few frames past odor onset
         odor_start = int(event_frames[1]) + odor_buffer
         reward_start = int(event_frames[2])
         pre_go_odor = [[0, odor_start]]
@@ -1603,18 +1595,21 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
         post_go_odor_onset = [[odor_start, trial_nframes]]
         post_nogo_odor_onset = [[odor_start+trial_nframes, 2*trial_nframes]]
 
-        during_odor = [[x*trial_nframes+odor_start, x*trial_nframes+odor_start+30]
-                       for x in np.arange(4)]
-        post_odor_onset = [[x*trial_nframes+odor_start, x*trial_nframes+trial_nframes]
-                           for x in np.arange(4)]
+        during_odor = [
+            [x*trial_nframes+odor_start, x*trial_nframes+odor_start+30]
+            for x in np.arange(4)]
+        post_odor_onset = [
+            [x*trial_nframes+odor_start, x*trial_nframes+trial_nframes]
+            for x in np.arange(4)]
 
         peaks = np.argmax(clust_means, axis=1)
         pre_go_odor_clusts = utils.in_ranges(pre_go_odor, peaks)
         pre_nogo_odor_clusts = utils.in_ranges(pre_nogo_odor, peaks)
         post_go_odor_onset_clusts = utils.in_ranges(post_go_odor_onset, peaks)
-        post_nogo_odor_onset_clusts = utils.in_ranges(post_nogo_odor_onset, peaks)
+        post_nogo_odor_onset_clusts = utils.in_ranges(
+            post_nogo_odor_onset, peaks)
 
-        ### Now assign each cluster to a super-cluster.
+        # Now assign each cluster to a super-cluster.
         super_clustering = np.zeros(clust_means.shape[0]).astype(int)
         super_clustering[pre_go_odor_clusts] = 0
         super_clustering[pre_nogo_odor_clusts] = 1
@@ -1625,11 +1620,12 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
                                 'post-go-odor', 'post-nogo-odor']
 
     elif protocol == '4way' or protocol == 'rand_4way':
-        odor_buffer = 3 ## Include a few frames past odor onset (before motor initiation).
+        odor_buffer = 3  # Include a few frames past odor onset
         odor_start = int(event_frames[1]) + odor_buffer
         reward_start = int(event_frames[2])
-        pre_odor = [[x * trial_nframes, x * trial_nframes + odor_start] for x in
-                    np.arange(4)]
+        pre_odor = [
+            [x * trial_nframes, x * trial_nframes + odor_start] for x in
+            np.arange(4)]
         during_odor = [[x * trial_nframes + odor_start,
                         x * trial_nframes + odor_start + 30] for x in
                        np.arange(4)]
@@ -1640,10 +1636,10 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
         peaks = np.argmax(clust_means, axis=1)
         pre_odor_clusts = utils.in_ranges(pre_odor, peaks)
 
-        ### Define clusters where the response during the odor
-        ### is independent of the trial type.
-        ### Potentially you could do this more wisely,
-        ### i.e. using an anova across trials
+        # Define clusters where the response during the odor
+        # is independent of the trial type.
+        # Potentially you could do this more wisely,
+        # i.e. using an anova across trials
         type_sums = np.vstack([np.max(clust_means[:, r[0]:r[1]], axis=1)
                                for r in post_odor_onset]).T
         type_sums = type_sums / np.sum(type_sums, axis=1)[:, np.newaxis]
@@ -1651,7 +1647,7 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
         indep_cutoff = 0.7
         spout_independent = np.logical_and(
             np.sum(type_sums < indep_cutoff, axis=1) == 4,
-            utils.in_ranges(during_odor, peaks))  ### In original space
+            utils.in_ranges(during_odor, peaks))  # In original space
 
         spout1 = np.logical_and(utils.in_ranges([post_odor_onset[0]], peaks),
                                 ~spout_independent)
@@ -1662,7 +1658,7 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
         nogo = np.logical_and(utils.in_ranges([post_odor_onset[3]], peaks),
                               ~spout_independent)
 
-        ### Now assign each cluster from the nmf to one of these clusters
+        # Now assign each cluster from the nmf to one of these clusters
         super_clustering = np.zeros(clust_means.shape[0]).astype(int)
         super_clustering[pre_odor_clusts] = 0
         super_clustering[spout_independent] = 1
@@ -1674,13 +1670,12 @@ def generate_super_clusters(protocol, clust_means, event_frames, trial_nframes):
         super_cluster_titles = ['pre-odor', 'spout-independent', 'spout1',
                                 'spout2', 'spout3', 'nogo']
 
-
     elif protocol == 'oeg2way':
         pass
     else:
-        raise('Protocol {} not yet implemented in generate_superclusters().'.format(protocol))
+        raise('Protocol {} not yet implemented.'.format(protocol))
 
-    super_clust_info = {'super_clustering':super_clustering,
+    super_clust_info = {'super_clustering': super_clustering,
                         'titles': super_cluster_titles}
 
     return super_clust_info
@@ -1718,7 +1713,8 @@ def order_super_clusters(super_clustering, clust_means, method='peak',
             trange = np.arange(clust_means.shape[1])
         clusts = np.where(super_clustering == i)[0]
         # max_sort = np.argsort(np.argmax(clust_means[clusts, :], axis=1))
-        max_sort = np.argsort(np.argmax(clust_means[clusts, :][:, trange], axis=1))
+        max_sort = np.argsort(
+            np.argmax(clust_means[clusts, :][:, trange], axis=1))
         clust_ord.append(clusts[max_sort])
 
     clust_ord = np.hstack(clust_ord)
@@ -1742,29 +1738,35 @@ def order_sources_by_clust(clustering,
     be cluster #5, propagate this change to all sources in cluster #1.
 
     :param clustering: [ncells]. Assignment of each cell to a cluster.
-    :param super_clustering: [nclusters]. Assignment of each clusters to a super cluster.
-    :param clust_ordering: [nclusters]. Assignment of ordered position of each cluster.
-                                  If clust_ordering[5] = 10, then that means cluster #10
-                                  should be in position 5.
-                                  This can be the output of order_super_clusters(), if
-                                  you want to order by super cluster,
-                                  or order_clusters(), if you just want to order
-                                  by the simple clusters.
+    :param super_clustering: [nclusters].
+            Assignment of each clusters to a super cluster.
+    :param clust_ordering: [nclusters].
+                        Assignment of ordered position of each cluster.
+                        If clust_ordering[5] = 10, then that means cluster #10
+                        should be in position 5.
+                        This can be the output of order_super_clusters(), if
+                        you want to order by super cluster,
+                        or order_clusters(), if you just want to order
+                        by the simple clusters.
 
-    :return ordered_clustering: [ncells]. For each cell, the ordered position of its cluster.
-    :return ordered_super_clustering: [ncells] For each cell, the position of its supercluster.
+    :return ordered_clustering: [ncells].
+        For each cell, the ordered position of its cluster.
+    :return ordered_super_clustering: [ncells]
+        For each cell, the position of its supercluster.
     """
 
-    ### Assign each cell a new position based on its cluster and the
-    ### ordered position of that cluster.
+    # Assign each cell a new position based on its cluster and the
+    # ordered position of that cluster.
     ordered_clustering = np.zeros(clustering.shape).astype(int)
     for i in range(len(clustering)):
         cluster_of_source = clustering[i]
-        ordered_clustering[i] = np.where(clust_ordering == cluster_of_source)[0]
+        ordered_clustering[i] = np.where(
+            clust_ordering == cluster_of_source)[0]
 
     if super_clustering is not None:
-        ### For each source, assign it to a super_cluster.
-        ordered_super_clustering = np.zeros(ordered_clustering.shape).astype(int)
+        # For each source, assign it to a super_cluster.
+        ordered_super_clustering = np.zeros(
+            ordered_clustering.shape).astype(int)
         for i in range(len(clustering)):
             ordered_super_clustering[i] = super_clustering[clustering[i]]
     else:
@@ -1787,9 +1789,9 @@ def get_cluster_index_ranges(ordered_clustering):
     :return clust_inds: [nclusts + 1]. A list of indices.
                          To obtain the the sources in the first cluster,
                          index as:
-                         >>np.argsort(ordered_clustering)[clust_inds[0]:clust_inds[1]],
+                >>np.argsort(ordered_clustering)[clust_inds[0]:clust_inds[1]],
                          and for cluster c, index as:
-                         >>np.argsort(ordered_clustering)[clust_inds[c]:clust_inds[c+1]],
+                >>np.argsort(ordered_clustering)[clust_inds[c]:clust_inds[c+1]],
 
     """
 
@@ -1799,6 +1801,7 @@ def get_cluster_index_ranges(ordered_clustering):
 
     return clust_inds
 
+
 def get_color_template():
     color_template = [[0.11, 0.11, 0.11, 1.0],
                       [250./255, 165./255, 26./255, 1.0],
@@ -1807,16 +1810,8 @@ def get_color_template():
                       [25./255, 129./255, 64./255, 1.0],
                       [0, 0, 1.0, 1.0]]
 
-    # color_template = [[1.0, 0.2, 0, 1.0],
-    #                   [1.0, 0, 1.0, 1.0],
-    #                   [1.0, 0.5, 0.2, 1.0],
-    #                   [1.0, 0, 0.3, 1.0],
-    #                   [0.0, 1.0, 0.5, 1.0],
-    #                   [0, 0, 1.0, 1.0],
-    #                   ]  ### Can change this is if you want custom colors,
-    #                     ### May need to increase it if you have more colors...
-
     return color_template
+
 
 def assign_colors_to_sources(ordered_clustering,
                              ordered_super_clustering,
@@ -1828,20 +1823,23 @@ def assign_colors_to_sources(ordered_clustering,
     Assign a color to each source based on the cluster
     and super-cluster it is a member of.
 
-    :param ordered_clustering: [ncells]. For each cell, the ordered position of its cluster.
+    :param ordered_clustering: [ncells]. For each cell,
+                               the ordered position of its cluster.
                                Output of order_sources_by_clust().
-    :param ordered_super_clustering: [ncells] For each cell, the position of its supercluster.
-                                     Output of order_sources_by_clust()
+    :param ordered_super_clustering: [ncells] For each cell,
+                               the position of its supercluster.
+                               Output of order_sources_by_clust()
     :param cmap: Colormap used for assigning color to each cluster.
-    :param same_within_super_cluster: Assign same color to each member of a super-cluster
+    :param same_within_super_cluster: Assign same color to each
+                                member of a super-cluster
     :param set_to_gray: None, or a list of super_cluster_indices that should
                         set their color to a transparent gray.
 
     :return source_coloring: [ncells x 4] RGBA value for each source.
     """
 
-    ### Make clusters within the same super cluster have
-    ### similar color values.
+    # Make clusters within the same super cluster have
+    # similar color values.
     clust_labels = np.sort(ordered_clustering)
     if ordered_super_clustering is None:
         ordered_clust_labels = np.expand_dims(clust_labels, axis=1)
@@ -1851,18 +1849,9 @@ def assign_colors_to_sources(ordered_clustering,
                                               + 4.001 * clust_labels, axis=1)
         if same_within_super_cluster:
             ordered_clust_labels = super_clust_labels
-            
-            
+
     if specify_discrete_colors:
         color_template = get_color_template()
-        # color_template = [[1.0, 0.2, 0, 1.0],
-        #                   [1.0, 0, 1.0, 1.0],
-        #                   [1.0, 0.5, 0.2, 1.0],
-        #                   [1.0, 0, 0.3, 1.0],
-        #                   [0.0, 1.0, 0.5, 1.0],
-        #                   [0, 0, 1.0, 1.0],
-        #                   ] ### Can change this is if you want custom colors,
-        #                     ### May need to increase it if you have more colors...
 
         if set_to_gray is not None:
             for k in set_to_gray:
@@ -1878,77 +1867,20 @@ def assign_colors_to_sources(ordered_clustering,
         plt.axis('off')
         colors = [f.cmap(f.norm(c)) for c in clusts]
 
-
     sorted_source_coloring = np.zeros((ordered_clust_labels.shape[0], 1, 4))
     for i, clust in enumerate(clust_labels):
         clust_ind = np.where(clust == np.unique(clust_labels))[0]
         sorted_source_coloring[i, 0, :] = np.array(colors[int(clust_ind)][:])
 
-    ### Reorganize the colors so that they match the global ordering of sources
-    ### (i.e. the one loaded up in CosmosTraces).
+    # Reorganize the colors so that they match the global ordering of sources
+    # (i.e. the one loaded up in CosmosTraces).
     source_coloring = np.zeros(sorted_source_coloring.shape)
     for source in range(source_coloring.shape[0]):
         sorted_ind = np.where(np.argsort(ordered_clustering) == source)[0]
-        source_coloring[source, :, :] = sorted_source_coloring[sorted_ind, :, :]
+        source_coloring[source, :, :] = sorted_source_coloring[
+            sorted_ind, :, :]
 
     return source_coloring
-
-#
-# def assign_colors_to_sources_orig(ordered_clustering,
-#                              ordered_super_clustering,
-#                              cmap='jet',
-#                              same_within_super_cluster=False):
-#     """
-#     Assign a color to each source based on the cluster
-#     and super-cluster it is a member of.
-#
-#     :param ordered_clustering: [ncells]. For each cell, the ordered position of its cluster.
-#                                Output of order_sources_by_clust().
-#     :param ordered_super_clustering: [ncells] For each cell, the position of its supercluster.
-#                                      Output of order_sources_by_clust()
-#     :param cmap: Colormap used for assigning color to each cluster.
-#     :param same_within_super_cluster: Assign same color to each member of a super-cluster
-#     :param set_to_gray: None, or a list of super_cluster_indices that should
-#                         set their color to a transparent gray.
-#
-#     :return source_coloring: [ncells x 4] RGBA value for each source.
-#     """
-#
-#     ### Make clusters within the same super cluster have
-#     ### similar color values.
-#     clust_labels = np.sort(ordered_clustering)
-#     if ordered_super_clustering is None:
-#         ordered_clust_labels = np.expand_dims(clust_labels, axis=1)
-#     else:
-#         super_clust_labels = np.sort(ordered_super_clustering)
-#         ordered_clust_labels = np.expand_dims(super_clust_labels * 50
-#                                               + 4 * clust_labels, axis=1)
-#         if same_within_super_cluster:
-#             ordered_clust_labels = np.expand_dims(super_clust_labels * 50
-#                                                   + 0.001 * clust_labels, axis=1)
-#
-#
-#     clusts = np.unique(ordered_clust_labels)
-#     plt.figure(figsize=(0.5, 0.5))
-#     f = plt.imshow(np.unique(ordered_clust_labels)[:, np.newaxis],
-#                    cmap=cmap,
-#                    aspect='auto')
-#     plt.axis('off')
-#     colors = [f.cmap(f.norm(c)) for c in clusts]
-#
-#     sorted_source_coloring = np.zeros((ordered_clust_labels.shape[0], 1, 4))
-#     for i, clust in enumerate(clust_labels):
-#         clust_ind = np.where(clust == np.unique(clust_labels))[0]
-#         sorted_source_coloring[i, 0, :] = np.array(colors[int(clust_ind)][:])
-#
-#     ### Reorganize the colors so that they match the global ordering of sources
-#     ### (i.e. the one loaded up in CosmosTraces).
-#     source_coloring = np.zeros(sorted_source_coloring.shape)
-#     for source in range(source_coloring.shape[0]):
-#         sorted_ind = np.where(np.argsort(ordered_clustering) == source)[0]
-#         source_coloring[source, :, :] = sorted_source_coloring[sorted_ind, :, :]
-#
-#     return source_coloring
 
 
 def cluster_snn(data, k=3):
@@ -1965,10 +1897,12 @@ def cluster_snn(data, k=3):
     nbrs = NearestNeighbors(n_neighbors=k, algorithm='kd_tree').fit(data)
     neighbor_graph = nbrs.kneighbors_graph(data)
     g = ig.Graph()
-    g = ig.GraphBase.Adjacency(neighbor_graph.toarray().tolist(), mode=ig.ADJ_UNDIRECTED)
+    g = ig.GraphBase.Adjacency(
+        neighbor_graph.toarray().tolist(), mode=ig.ADJ_UNDIRECTED)
     sim = np.array(g.similarity_jaccard())
     g = ig.GraphBase.Weighted_Adjacency(sim.tolist(), mode=ig.ADJ_UNDIRECTED)
-    return np.array(g.community_multilevel(weights="weight", return_levels=False))
+    return np.array(
+        g.community_multilevel(weights="weight", return_levels=False))
 
 
 def get_cluster_averages(data, source_clustering, do_zscore=True,
@@ -2019,13 +1953,13 @@ def plot_cluster_averages(data, ordered_clustering, ordered_super_clustering,
     :param data: [ncells x time]
     :param ordered_clustering: [ncells] Assigns a cluster to each source.
                                    The outputs from order_sources_by_clust().
-    :param ordered_super_clustering: [ncells] Assigns a supercluster to each source.
+    :param ordered_super_clustering:
+        [ncells] Assigns a supercluster to each source.
     :param trial_set_inds: [ntrialtypes] The start index for each trial type
-                                         if data consists of multiple trial types
-                                         concatenated together.
-    :param by_trial_type: bool. If true, then each trial type has a separate plot,
+        if data consists of multiple trial types concatenated together.
+    :param by_trial_type: bool. If true, then each trial type has a plot,
                                 with all cluster traces plotted for each.
-                                If false, then each cluster has a separate plot,
+                                If false, then each cluster has a plot,
                                 with all trial types plotted for each.
     :param event_frames: list of frame indices at which to draw vertical lines.
     """
@@ -2042,13 +1976,11 @@ def plot_cluster_averages(data, ordered_clustering, ordered_super_clustering,
     super_clust_colors = get_super_clust_colors(ordered_super_clustering,
                                                 source_coloring)
 
-
     if by_trial_type:
         fig = plt.figure(figsize=(20, 3))
         for c in range(clust_avgs.shape[0]):
-            plt.plot(clust_avgs[c,:],
-                    color=super_clust_colors[c, :],
-                    linewidth=1)
+            plt.plot(
+                clust_avgs[c, :], color=super_clust_colors[c, :], linewidth=1)
         if vertical_lines is not None:
             if type(vertical_lines) is dict:
                 for key, val in vertical_lines.items():
@@ -2058,7 +1990,8 @@ def plot_cluster_averages(data, ordered_clustering, ordered_super_clustering,
                         [plt.axvline(x, color=key, linewidth=0.5,
                                      linestyle=(0, (1, 1))) for x in val]
             else:
-                [plt.axvline(x, color='r', linewidth=0.5) for x in vertical_lines]
+                [plt.axvline(
+                    x, color='r', linewidth=0.5) for x in vertical_lines]
         plt.xlim([0, clust_avgs.shape[1]])
         if time_labels is not None:
             plt.gca().set_xticks(time_labels['positions'])
@@ -2067,42 +2000,6 @@ def plot_cluster_averages(data, ordered_clustering, ordered_super_clustering,
         plt.gca().set_ylabel('z-score')
         for axis in ['top', 'bottom', 'left', 'right']:
             plt.gca().spines[axis].set_linewidth(0.5)
-
-    # nt = int(np.mean(np.diff(trial_set_inds)))
-    # if by_trial_type:
-    #     # Separate subplot for each trial type.
-    #     fig = plt.figure(figsize=(20, 3))
-    #     for i in range(4):
-    #         plt.subplot(1, len(trial_set_inds), i + 1)
-    #         inds = np.arange(2, nt-5)
-    #         for c in range(clust_avgs.shape[0]):
-    #             plt.plot(
-    #                 inds,
-    #                 clust_avgs[c, inds+trial_set_inds[i]].T,
-    #                 color=super_clust_colors[c, :],
-    #                 linewidth=1)
-    #         #   plt.title(trial_names[i])
-    #         plt.ylim([-2.5, 5])
-    #         fig.subplots_adjust(hspace=0, wspace=0.04)
-    #         if i > 0:
-    #             plt.yticks([])
-    #         plt.xlim([0, nt])
-    #         if event_frames is not None:
-    #             [plt.axvline(x, linewidth=0.5, linestyle=(0, (1, 1)),
-    #                          color='k') for x in event_frames]
-    #         if event_labels is not None:
-    #             plt.xticks(event_frames, event_labels)
-    # else:
-    #     # Separate subplot for each cluster.
-    #     plt.figure(figsize=(10, 2))
-    #     nclusts = clust_avgs.shape[0]
-    #     for clust in range(nclusts):
-    #         plt.subplot(1, nclusts, clust + 1)
-    #         for trialtype in range(len(trial_set_inds)):
-    #             plt.plot(clust_avgs[clust, trialtype * nt:(trialtype + 1) * nt])
-    #         if event_frames is not None:
-    #             [plt.axvline(x) for x in event_frames]
-    #         #     plt.title(super_clust_titles[clust])
 
 
 def plot_stacked_group_composition(group_composition,
@@ -2161,7 +2058,7 @@ def sort_rows_greedily(d):
         if i == 0:
             which_row = np.argmax(d[:, 0])
         else:
-            ### Select the closest row
+            # Select the closest row
             prev_row = sorted_data[i - 1, :]
             dot_prod = np.matmul(unsorted_data, prev_row)
             which_row = np.argmax(dot_prod)
@@ -2279,7 +2176,8 @@ def rand_circshift(data, rand_seed=1):
     return shifted_data
 
 
-def compare_in_vs_next_best_cluster(clustering, corr_matrix, do_plot=False, do_debug=False):
+def compare_in_vs_next_best_cluster(
+        clustering, corr_matrix, do_plot=False, do_debug=False):
 
     """
     Compare the mean correlation coefficient of sources
@@ -2310,7 +2208,7 @@ def compare_in_vs_next_best_cluster(clustering, corr_matrix, do_plot=False, do_d
     diffs = []
     nclusts = clust_corrs.shape[0]
     for i in range(nclusts):
-        inds = np.arange(nclusts)!=i
+        inds = np.arange(nclusts) != i
         d = clust_corrs[i, i] - np.nanmax(clust_corrs[i, inds])
         diffs.append(d)
     diffs = np.array(diffs)
@@ -2327,6 +2225,7 @@ def compare_in_vs_next_best_cluster(clustering, corr_matrix, do_plot=False, do_d
         plt.ylabel('Cluster count')
     return diffs
 
+
 def compare_in_vs_out_of_cluster(clustering, corr_matrix, do_plot=False,
                                  do_remove_nan=True):
     """
@@ -2341,26 +2240,11 @@ def compare_in_vs_out_of_cluster(clustering, corr_matrix, do_plot=False,
 
     :return in_clust: [nclusts] For each cluster, mean correlation between
                                 sources within that cluster.
-            out_clust: [nclusts*2 - nclusts] For each pair of different clusters,
+            out_clust: [nclusts*2 - nclusts] For each pair of clusters,
                                 the mean correlation between sources
                                 in the pairs of clusters.
 
     """
-
-    # nclusts = np.max(clustering) + 1
-    # clust_corrs = np.zeros((nclusts, nclusts))
-    # for base_c in np.unique(clustering):
-    #     sources_in_base = np.where(clustering == base_c)[0]
-    #     for target_c in np.unique(clustering):
-    #         sources_in_target = np.where(clustering == target_c)[0]
-    #
-    #         corrs = []
-    #         for s in sources_in_base:
-    #             for t in sources_in_target:
-    #                 if s != t:  # Exclude self-comparisons
-    #                     corrs.append(corr_matrix[s, t])
-    #
-    #         clust_corrs[base_c, target_c] = np.mean(np.array(corrs))
 
     clust_corrs = get_between_cluster_correlations(clustering, corr_matrix)
 
@@ -2368,13 +2252,13 @@ def compare_in_vs_out_of_cluster(clustering, corr_matrix, do_plot=False,
         plt.imshow(clust_corrs)
         plt.title('Correlation of sources between clusters')
 
-    ### Extract diagonal components (i.e. correlations within clusters)
+    # Extract diagonal components (i.e. correlations within clusters)
     in_clust = np.diagonal(clust_corrs)
     if do_remove_nan:
         in_clust = np.delete(in_clust, np.where(np.isnan(in_clust))[0])
 
-    ### Extract upper off-diagonal components
-    ### (i.e. correlations outside clusters).
+    # Extract upper off-diagonal components
+    # (i.e. correlations outside clusters).
     w = np.where(np.triu(clust_corrs, k=1) != 0)
     out_clust = clust_corrs[w[0], w[1]]
     if do_remove_nan:
@@ -2421,22 +2305,28 @@ def plot_clustered_sources_cross_validate(
 
       Uses the output of order_sources_by_clust().
 
-      :param ordered_clustering: [ncells]. For each cell, the ordered position of its cluster.
-      :param ordered_super_clustering: [ncells] For each cell, the position of its supercluster.
-      :param first_source_means: [ncells x ntime]. The trace corresponding to each source/cell
-                                             potentially concatenated across trial types averaged
-                                             across the first half of the dataset.
-      :param second_source_means: [ncells x ntime]. The trace corresponding to each source/cell
-                                         potentially concatenated across trial types averaged
-                                          across the second half of the dataset.
+      :param ordered_clustering: [ncells].
+            For each cell, the ordered position of its cluster.
+      :param ordered_super_clustering:
+            [ncells] For each cell, the position of its supercluster.
+      :param first_source_means:
+            [ncells x ntime]. The trace corresponding to each source/cell
+            potentially concatenated across trial types averaged
+            across the first half of the dataset.
+      :param second_source_means:
+            [ncells x ntime]. The trace corresponding to each source/cell
+            potentially concatenated across trial types averaged
+            across the second half of the dataset.
       :param source_coloring: [ncells x 4] RGBA value for each source.
       :param cmap: str. Colormap name for the trace plots.
-      :param vertical_lines: list of frame indices for plotting vertical lines over the traces.
+      :param vertical_lines:
+            list of frame indices for plotting vertical lines over the traces.
       :param title_str: Optional title for the plot.
       :param labels: a dict containing 'labels' and 'positions' for plotting
                      labels of each trial type column.
-      :param time_labels: a dict containing 'labels' and 'positions' for plotting
-                     the time ticks along the bottom.
+      :param time_labels:
+            a dict containing 'labels' and 'positions' for plotting
+            the time ticks along the bottom.
       :param exclude_super_clusters: A list of superclusters
                                     (using the 'ordered_super_clustering' ids)
                                     to not show in the plot. Set to None
@@ -2449,13 +2339,13 @@ def plot_clustered_sources_cross_validate(
 
     nsources = source_means.shape[0]
 
-    ### Generate plot layout
+    # Generate plot layout
     fig = plt.figure(figsize=(10, 20))
     gs = []
     gs.append(plt.subplot2grid((50, 50), (0, 0), colspan=3, rowspan=47))
     gs.append(plt.subplot2grid((50, 50), (0, 3), colspan=47, rowspan=47))
 
-    ### Plot cluster labels
+    # Plot cluster labels
     plt.subplot(gs[0])
 
     if exclude_super_clusters is not None:
@@ -2463,10 +2353,12 @@ def plot_clustered_sources_cross_validate(
         for c in exclude_super_clusters:
             ordered_clustering = np.copy(ordered_clustering)
             print(c)
-            ordered_clustering[np.where(ordered_super_clustering == c)[0]] = 1e8
+            ordered_clustering[
+                np.where(ordered_super_clustering == c)[0]] = 1e8
             n_to_exclude += len(np.where(ordered_super_clustering == c)[0])
             print(n_to_exclude)
-    plt.imshow(source_coloring[np.argsort(ordered_clustering), :, :], aspect='auto')
+    plt.imshow(
+        source_coloring[np.argsort(ordered_clustering), :, :], aspect='auto')
 
     gs[0].get_xaxis().set_visible(False)
     #     plt.yticks(label_ind, region_str)
@@ -2478,7 +2370,8 @@ def plot_clustered_sources_cross_validate(
     # gs[0].spines['left'].set_visible(False)
     if exclude_super_clusters:
         gs[0].set_ylim([nsources - n_to_exclude, 0])
-        [plt.axhline(x - n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
+        [plt.axhline(
+            x - n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
 
     else:
         [plt.axhline(x, color='k', linewidth=0.5) for x in clust_end]
@@ -2495,7 +2388,9 @@ def plot_clustered_sources_cross_validate(
                 if key == 'k':
                     [plt.axvline(x, color=key, linewidth=0.5) for x in val]
                 else:
-                    [plt.axvline(x, color=key, linewidth=0.5, linestyle=(0, (1, 1))) for x in val]
+                    [plt.axvline(
+                        x, color=key, linewidth=0.5, linestyle=(
+                            0, (1, 1))) for x in val]
         else:
             [plt.axvline(x, color='r', linewidth=0.5) for x in vertical_lines]
     # plt.axvline(Z.shape[1], color='k', linewidth=0.5)
@@ -2511,7 +2406,8 @@ def plot_clustered_sources_cross_validate(
     gs[1].yaxis.tick_right()
     if exclude_super_clusters:
         gs[1].set_ylim([nsources - n_to_exclude, 0])
-        [plt.axhline(x - n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
+        [plt.axhline(x - n_to_exclude,
+         color='k', linewidth=0.5) for x in clust_end]
     else:
         [plt.axhline(x, color='k', linewidth=0.5) for x in clust_end]
 
@@ -2551,13 +2447,17 @@ def plot_clustered_sources(ordered_clustering,
     ordered by cluster.
     Uses the output of order_sources_by_clust().
 
-    :param ordered_clustering: [ncells]. For each cell, the ordered position of its cluster.
-    :param ordered_super_clustering: [ncells] For each cell, the position of its supercluster.
-    :param source_means: [ncells x ntime]. The trace corresponding to each source/cell
-                                           potentially concatenated across trial types.
+    :param ordered_clustering: [ncells].
+        For each cell, the ordered position of its cluster.
+    :param ordered_super_clustering:
+        [ncells] For each cell, the position of its supercluster.
+    :param source_means: [ncells x ntime].
+        The trace corresponding to each source/cell
+        potentially concatenated across trial types.
     :param source_coloring: [ncells x 4] RGBA value for each source.
     :param cmap: str. Colormap name for the trace plots.
-    :param vertical_lines: list of frame indices for plotting vertical lines over the traces.
+    :param vertical_lines:
+        list of frame indices for plotting vertical lines over the traces.
     :param title_str: Optional title for the plot.
     :param labels: a dict containing 'labels' and 'positions' for plotting
                    labels of each trial type column.
@@ -2575,13 +2475,13 @@ def plot_clustered_sources(ordered_clustering,
 
     nsources = source_means.shape[0]
 
-    ### Generate plot layout
+    # Generate plot layout
     fig = plt.figure(figsize=(10, 20))
     gs = []
     gs.append(plt.subplot2grid((50, 50), (0, 0), colspan=3, rowspan=47))
     gs.append(plt.subplot2grid((50, 50), (0, 3), colspan=47, rowspan=47))
 
-    ### Plot cluster labels
+    # Plot cluster labels
     plt.subplot(gs[0])
 
     if exclude_super_clusters is not None:
@@ -2589,10 +2489,13 @@ def plot_clustered_sources(ordered_clustering,
         for c in exclude_super_clusters:
             ordered_clustering = np.copy(ordered_clustering)
             print(c)
-            ordered_clustering[np.where(ordered_super_clustering==c)[0]] = 1e8
-            n_to_exclude += len(np.where(ordered_super_clustering==c)[0])
+            ordered_clustering[
+                np.where(ordered_super_clustering == c)[0]] = 1e8
+            n_to_exclude += len(
+                np.where(ordered_super_clustering == c)[0])
             print(n_to_exclude)
-    plt.imshow(source_coloring[np.argsort(ordered_clustering), :, :], aspect='auto')
+    plt.imshow(
+        source_coloring[np.argsort(ordered_clustering), :, :], aspect='auto')
 
     gs[0].get_xaxis().set_visible(False)
     #     plt.yticks(label_ind, region_str)
@@ -2604,7 +2507,8 @@ def plot_clustered_sources(ordered_clustering,
     # gs[0].spines['left'].set_visible(False)
     if exclude_super_clusters:
         gs[0].set_ylim([nsources - n_to_exclude, 0])
-        [plt.axhline(x-n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
+        [plt.axhline(
+            x-n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
 
     else:
         [plt.axhline(x, color='k', linewidth=0.5) for x in clust_end]
@@ -2621,7 +2525,9 @@ def plot_clustered_sources(ordered_clustering,
                 if key == 'k':
                     [plt.axvline(x, color=key, linewidth=0.5) for x in val]
                 else:
-                    [plt.axvline(x, color=key, linewidth=0.5, linestyle=(0, (1, 1))) for x in val]
+                    [plt.axvline(
+                        x, color=key, linewidth=0.5, linestyle=(0, (1, 1)))
+                        for x in val]
         else:
             [plt.axvline(x, color='r', linewidth=0.5) for x in vertical_lines]
     # plt.axvline(Z.shape[1], color='k', linewidth=0.5)
@@ -2637,7 +2543,8 @@ def plot_clustered_sources(ordered_clustering,
     gs[1].yaxis.tick_right()
     if exclude_super_clusters:
         gs[1].set_ylim([nsources - n_to_exclude, 0])
-        [plt.axhline(x-n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
+        [plt.axhline(
+            x-n_to_exclude, color='k', linewidth=0.5) for x in clust_end]
     else:
         [plt.axhline(x, color='k', linewidth=0.5) for x in clust_end]
 
@@ -2655,8 +2562,6 @@ def plot_clustered_sources(ordered_clustering,
 
     gs[1].set_ylabel('sources')
 
-
-    # plt.box(on=None)
     fig.subplots_adjust(hspace=0, wspace=0)
     if title_str is not None:
         plt.suptitle(title_str)
@@ -2666,13 +2571,15 @@ def get_super_clust_colors(ordered_super_clustering, centroid_coloring):
     """
     Return RGBA colors corresponding to
     each supercluster.
-    :param ordered_super_clustering: [ncells]. Assignment of each source to a supercluster.
+    :param ordered_super_clustering: [ncells].
+        Assignment of each source to a supercluster.
     :param centroid_coloring: [ncells x 4]. RGBA for assignment to each source.
                               i.e. output of assign_colors_to_sources().
     """
-    super_clust_colors = np.zeros((len(np.unique(ordered_super_clustering)), 4))
+    super_clust_colors = np.zeros(
+        (len(np.unique(ordered_super_clustering)), 4))
     for ind, sc in enumerate(np.unique(ordered_super_clustering)):
-        cellid = np.where(ordered_super_clustering==sc)[0][0]
+        cellid = np.where(ordered_super_clustering == sc)[0][0]
         super_clust_colors[ind, :] = centroid_coloring[cellid, :]
     return super_clust_colors
 
@@ -2721,12 +2628,12 @@ def compare_cluster_memberships(clustering1,
     nclust1 = np.max(clustering1) + 1
     nclust2 = np.max(clustering2) + 1
 
-    ### Ignore specified super clusters.
+    # Ignore specified super clusters.
     which_super_clusters = np.arange(nclust2)
     if exclude_super_clusters is not None:
         for c in exclude_super_clusters:
-            which_super_clusters = np.delete(which_super_clusters,
-                                             np.where(which_super_clusters == c)[0])
+            which_super_clusters = np.delete(
+                which_super_clusters, np.where(which_super_clusters == c)[0])
         nclust2 -= len(exclude_super_clusters)
 
     overlap = np.zeros((nclust2, nclust1))
@@ -2744,7 +2651,8 @@ def compare_cluster_memberships(clustering1,
             total_in_clust1[0, clust1] += len(np.where(in_both)[0])
 
     # import pdb; pdb.set_trace()
-    # normed_overlap = overlap / np.tile(total_in_clust1, (nclust2, 1))  ### A Potential unit test: The columns(?) should each add up to 1
+    # normed_overlap = overlap / np.tile(total_in_clust1, (nclust2, 1))
+    # A Potential unit test: The columns(?) should each add up to 1
     normed_overlap = overlap / np.sum(overlap, axis=0)[np.newaxis, :]
     normed_overlap[np.isnan(normed_overlap)] = 0
 
@@ -2772,9 +2680,11 @@ def compute_cluster_sizes(clustering):
     nclusters = np.max(clustering)+1
     cluster_sizes = np.zeros((nclusters, 1))
     for ccc in range(nclusters):
-        cluster_sizes[ccc] = len(np.where(clustering==ccc)[0])
+        cluster_sizes[ccc] = len(
+            np.where(clustering == ccc)[0])
 
     return cluster_sizes
+
 
 def compute_cluster_spread(clustering, centroids, do_split_hemispheres=False):
     """
@@ -2783,11 +2693,13 @@ def compute_cluster_spread(clustering, centroids, do_split_hemispheres=False):
     :param clustering: [ncells] The cluster assignment of each source.
     :param centroids: [ncells x 2] The centroid coordinates of each source.
 
-    :return median_cluster_spread: [nclusters], the spread of centroids in each cluster
-    :return sem_cluster_spread: [nclusters], the variance in the centroid distances in each cluster
+    :return median_cluster_spread: [nclusters]
+        the spread of centroids in each cluster
+    :return sem_cluster_spread: [nclusters]
+        the variance in the centroid distances in each cluster
     """
 
-    ### Compute spatial spread of each cluster.
+    # Compute spatial spread of each cluster.
     nclusters = np.max(clustering)+1
     median_cluster_spread = np.zeros((nclusters, 1))
     sem_cluster_spread = np.zeros((nclusters, 1))
@@ -2810,19 +2722,21 @@ def plot_single_cluster_spatial_map(which_clust,
                                     clustering,
                                     super_clustering=None,
                                     bg_alpha=0.1,
-                                    fig_size=[3,3],
+                                    fig_size=[3, 3],
                                     radius=10,
                                     ax=None):
     """
     Wrapper that enables plotting of centroids for a
     single cluster.
 
-    :param which_clust: integer id of the cluster. (corresponding to 'clustering')
+    :param which_clust: integer id of the cluster.
+        (corresponding to 'clustering')
     :param centroids_to_plot: [ncells x 2] coordinate of each cell.
                               i.e. all_nmf['full']['centroid_atlas_coords']
     :param clustering: [ncells], assignment of each cell to a cluster.
                         i.e. all_nmf['full']['ordered_clustering']
-    :param super_clustering: optional. This only is necessary for protocol='4way'
+    :param super_clustering: optional.
+        This only is necessary for protocol='4way'
     :param bg_alpha: option. Alpha of the background centroids.
     :param fig_size: [width, height] in inches.
     :param radius: int. radius of the centroids in scatter plot.
@@ -2834,17 +2748,19 @@ def plot_single_cluster_spatial_map(which_clust,
                                                  cmap='hsv')
 
     plot_cluster_spatial_maps(centroid_coloring,
-                                 clustering,
-                                 centroids_to_plot,
-                                 radius=radius,
-                                 background_color=np.array([0.9, 0.9, 0.9, bg_alpha]),
-                                 do_overlay=True,
-                                 specific_clusters = [which_clust],
-                                 ncols=1,
-                                 ax=ax)
+                              clustering,
+                              centroids_to_plot,
+                              radius=radius,
+                              background_color=np.array(
+                                  [0.9, 0.9, 0.9, bg_alpha]),
+                              do_overlay=True,
+                              specific_clusters=[which_clust],
+                              ncols=1,
+                              ax=ax)
 
     if ax is None:
-        plt.gcf().set_size_inches(w=fig_size[0], h=fig_size[1]) # Control size of figure in inches
+        plt.gcf().set_size_inches(w=fig_size[0], h=fig_size[1])
+
 
 def plot_cluster_spatial_maps(source_coloring,
                               clustering,
@@ -2869,10 +2785,10 @@ def plot_cluster_spatial_maps(source_coloring,
                                 outputs of order_sources_by_clust(),
                                 such as 'ordered_super_clustering'.
     :param centroids_to_plot: [ncells x 2] The atlas-transformed centroids.
-    :param atlas_coords: [ncells x 2] The centroid location of each source, transformed
-                         to align to the atlas
-                         (i.e. using CT.atlas_tform.inverse((centroids[cell, 1],
-                                                             centroids[cell, 0]))[0]
+    :param atlas_coords: [ncells x 2] The centroid location of each source,
+                         transformed to align to the atlas
+                         (i.e. using CT.atlas_tform.inverse(
+                             (centroids[cell, 1], centroids[cell, 0]))[0]
     :param radius: int. radius of the circle to draw at each source location.
     :param background_color: the color for plotting background centroids that
                              are not the highlighted ones.
@@ -2980,20 +2896,17 @@ def plot_cluster_members_averages(rates,
 
     if do_by_trial_type:
         data = concatenate_trial_type_avgs(trial_sets,
-                                           rates,
-                                            do_plot=False)
+                                           rates, do_plot=False)
     else:
         data = np.mean(rates, axis=2)
 
     if do_zscore:
         data = scipy.stats.zscore(data, axis=1)
 
-
-    ### Compute the in vs. out correlation.
+    # Compute the in vs. out correlation.
     rates_flat = np.reshape(rates,
                             (rates.shape[0],
-                             rates.shape[1] * rates.shape[2]),
-                             order='F')
+                             rates.shape[1] * rates.shape[2]), order='F')
     if do_zscore:
         rates_flat = zscore(rates_flat, axis=1)
     corr_matrix = np.corrcoef(rates_flat)
@@ -3003,15 +2916,14 @@ def plot_cluster_members_averages(rates,
 
     plt.figure()
     for c in which_clusts:
-        ### Plot the traces
+        # Plot the traces
         plt.figure(figsize=(9, 3))
-        plt.subplot(1,2,1)
-        traces_to_plot = data[clustering==c, :]
+        plt.subplot(1, 2, 1)
+        traces_to_plot = data[clustering == c, :]
         if do_sort:
             peak_times = np.argmax(traces_to_plot, axis=1)
             traces_to_plot = traces_to_plot[np.argsort(peak_times), :]
         plt.imshow(traces_to_plot, aspect='auto')
-
 
         if event_frames is not None:
             if do_by_trial_type:
@@ -3021,17 +2933,16 @@ def plot_cluster_members_averages(rates,
                     [plt.axvline(i*rates.shape[1], color='w', linestyle='-')
                      for f in event_frames]
             else:
-                [plt.axvline(0, color='r', linestyle='--') for f in event_frames]
+                [plt.axvline(
+                    0, color='r', linestyle='--') for f in event_frames]
 
         if centroids_to_plot is not None:
-            plot_single_cluster_spatial_map(which_clust=c,
-                                            centroids_to_plot=centroids_to_plot,
-                                            clustering=clustering,
-                                            ax=plt.subplot(1, 2, 2))
+            plot_single_cluster_spatial_map(
+                which_clust=c, centroids_to_plot=centroids_to_plot,
+                clustering=clustering, ax=plt.subplot(1, 2, 2))
         titlestr = '{} -- In: {:.3f}, Best out: {:.3f}'.format(
             c, inclust[c], np.max(outclust[c]))
         plt.title(titlestr)
-
 
 
 def plot_clusters_means_per_trial_type(rates, clustering, trial_sets,
@@ -3054,8 +2965,9 @@ def plot_clusters_means_per_trial_type(rates, clustering, trial_sets,
                             (rates.shape[0], rates.shape[1] * rates.shape[2]),
                             order='F')
     clust_avgs = get_cluster_averages(rates_flat, clustering)
-    clust_avgs_trial = np.reshape(clust_avgs, (
-    clust_avgs.shape[0], rates.shape[1], rates.shape[2]), order='F')
+    clust_avgs_trial = np.reshape(clust_avgs, (clust_avgs.shape[0],
+                                               rates.shape[1],
+                                               rates.shape[2]), order='F')
     trial_type_avgs = utils.average_within_trial_types(clust_avgs_trial,
                                                        trial_sets)
     if do_plot:
@@ -3097,7 +3009,7 @@ def summarize_individual_cluster(which_clust, CT, clustering, trial_sets,
                                                          trial_sets,
                                                          do_plot=False)
 
-    ### Plot average cluster response for each trial type
+    # Plot average cluster response for each trial type
     plt.figure()
     plt.imshow(zscore(trial_type_avgs[which_clust, :, :].T, axis=1),
                aspect='auto')
@@ -3105,7 +3017,7 @@ def summarize_individual_cluster(which_clust, CT, clustering, trial_sets,
     plt.xlabel('frame')
     plt.title('clust {}'.format(which_clust))
 
-    ### Single-trial traces for each source in the cluster
+    # Single-trial traces for each source in the cluster
     if which_trials is None:
         which_trials = np.arange(3)
 
@@ -3121,7 +3033,7 @@ def summarize_individual_cluster(which_clust, CT, clustering, trial_sets,
     plt.suptitle('Single-trial trace of each source in cluster')
     plt.xlabel('Frame #')
 
-    ### Single-trial trace averaged across sources in the cluster
+    # Single-trial trace averaged across sources in the cluster
     plt.figure()
     plt.plot(np.mean(trial_rates, axis=0))
     [plt.axvline(x, color='r') for x in which_trials * rates.shape[1]]
@@ -3129,7 +3041,7 @@ def summarize_individual_cluster(which_clust, CT, clustering, trial_sets,
     plt.title('Mean single-trial activity across sources in cluster')
     plt.xlabel('Frame #')
 
-    ### Contours of ROIs sources in cluster.
+    # Contours of ROIs sources in cluster.
     which_cells = np.where(clustering == which_clust)[0]
     coords = plot_cluster_contours(CT, which_cells,
                                    which_base_im=1,
@@ -3140,8 +3052,7 @@ def summarize_individual_cluster(which_clust, CT, clustering, trial_sets,
                                    edge_color=(1, 0, 0, 0.4))
     plt.title('Cluster {}'.format(which_clust))
 
-
-    ### Plot centroids on atlas
+    # Plot centroids on atlas
     # centroid_coloring = cu.assign_colors_to_sources(clustering,
     #                                                 clustering,
     #                                                 cmap='hsv')
@@ -3161,10 +3072,12 @@ def summarize_individual_cluster(which_clust, CT, clustering, trial_sets,
     #                              specific_clusters=which_clusts,
     #                              ncols=2)
 
-def plot_single_trials_with_trial_type(source_id, rates, trial_types,
-                                       start_f, end_f, event_frame, fps,
-                                       trial_type_colors=['#70C169', 'r', 'w', 'c', 'orange'],
-                                       cmap='gray_r'):
+
+def plot_single_trials_with_trial_type(
+        source_id, rates, trial_types,
+        start_f, end_f, event_frame, fps,
+        trial_type_colors=['#70C169', 'r', 'w', 'c', 'orange'],
+        cmap='gray_r'):
     """
     For a single source, plot all single trials, and also plot the trial types
     on the right side.
@@ -3195,8 +3108,10 @@ def plot_single_trials_with_trial_type(source_id, rates, trial_types,
     plt.axvline(0, color='k', linestyle='--')
     plt.title(source_id)
 
-def plot_trial_type_mean_traces(source_id, rates, trial_types, event_frame, fps,
-                                trial_type_colors=['g', 'r', 'w', 'c', 'orange']):
+
+def plot_trial_type_mean_traces(
+        source_id, rates, trial_types, event_frame, fps,
+        trial_type_colors=['g', 'r', 'w', 'c', 'orange']):
     """
     Plot the mean trace for each trial type for a single source.
 
@@ -3224,13 +3139,13 @@ def plot_trial_type_mean_traces(source_id, rates, trial_types, event_frame, fps,
     plt.title(source_id)
 
 
-def  get_task_cluster_cells_per_region(region_names, regions_of_cells,
-                                       clust_assignments):
+def get_task_cluster_cells_per_region(region_names, regions_of_cells,
+                                      clust_assignments):
     """
     Get the number of sources in each cluster in each region.
     Also get the total number of cells per region.
 
-    :param region_names: dict. keys: i.e. 'MO', vals: id number for that region.
+    :param region_names: dict. keys: i.e. 'MO', vals: id num for that region.
                          This is CT.regions.
     :param regions_of_cells: [nsources], the region id for each source.
                              This is CT.region_of_cell.
@@ -3266,21 +3181,22 @@ def  get_task_cluster_cells_per_region(region_names, regions_of_cells,
     return clusters_region_dist, total_cells_per_region
 
 
-def compute_spatial_dists(which_sources, centroids, hist_bins=None, do_kde=False):
+def compute_spatial_dists(
+        which_sources, centroids, hist_bins=None, do_kde=False):
     """Helper function to actually compute the pairwise spatial distance."""
     which_centroids = centroids[which_sources, :]
     dists = scipy.spatial.distance.pdist(which_centroids)
-    if do_kde: ## This takes a long time.
+    if do_kde:  # This takes a long time.
         kde = scipy.stats.gaussian_kde(dists)
     else:
         kde = None
     if hist_bins is not None:
-        h, _= np.histogram(dists, bins=hist_bins, normed=True)
+        h, _ = np.histogram(dists, bins=hist_bins, normed=True)
     else:
         h = None
 
-
     return (dists, h, kde)
+
 
 def get_pairwise_spatial_dist(clust, labels, centroids, do_shuff=False,
                               hist_bins=None, do_kde=False):
@@ -3296,8 +3212,8 @@ def get_pairwise_spatial_dist(clust, labels, centroids, do_shuff=False,
     else:
         which_sources = labels == clust
     (dists, h, kde) = compute_spatial_dists(which_sources, centroids,
-                                        hist_bins=hist_bins,
-                                        do_kde=False)
+                                            hist_bins=hist_bins,
+                                            do_kde=False)
 
     return (dists, h, kde)
 
@@ -3341,12 +3257,13 @@ def get_and_plot_empirical_cdfs(all_dists,
                                       colors=coloring,
                                       shuff_shade_p=0.05)
 
+
 def get_and_plot_empirical_hists(all_dists,
-                                all_shuffle_dists,
-                                bins,
-                                dsets,
-                                clusts,
-                                savepath):
+                                 all_shuffle_dists,
+                                 bins,
+                                 dsets,
+                                 clusts,
+                                 savepath):
     """
     Get empirical histograms and associated corrected p-values,
     and then plot histogram overlay on null distribution.
@@ -3362,10 +3279,10 @@ def get_and_plot_empirical_hists(all_dists,
 
     (all_shuffle_hist,
      all_hist) = generate_hists_from_dists(all_shuffle_dists,
-                                              all_dists,
-                                              dsets,
-                                              clusts,
-                                              bins)
+                                           all_dists,
+                                           dsets,
+                                           clusts,
+                                           bins)
 
     hist_pvals = get_empirical_pvalues(all_shuffle_hist,
                                        all_hist,
@@ -3383,13 +3300,14 @@ def get_and_plot_empirical_hists(all_dists,
                                        colors=coloring,
                                        shuff_shade_p=0.05)
 
+
 def get_cdfs(all_dists, all_shuffle_dists, x, dsets, clusts=None):
     """
     Compute empirical cumulative density functions (CDF).
     (This is similar to generate_hists_from_dists()
      which instead computes pdfs).
 
-    :param all_shuffle_dist, all_dists: output from generate_all_pairwise_dists()
+    :param all_shuffle_dist, all_dists: output of generate_all_pairwise_dists()
     :param x: define the values at which to evaluate the CDF
     :param dsets: list of dataset ids (i.e. [7, 11, 18, 19])
     :return:
@@ -3415,6 +3333,7 @@ def get_cdfs(all_dists, all_shuffle_dists, x, dsets, clusts=None):
 
     return (all_shuffle_cdf, all_cdf)
 
+
 def get_shuffle_percentile(shuffle_vals, vals):
     """
     Determine the percentile of each value
@@ -3431,6 +3350,7 @@ def get_shuffle_percentile(shuffle_vals, vals):
                                           vals[i], kind='rank')
         pctiles.append(p)
     return np.hstack(pctiles)
+
 
 def get_empirical_pvalues(all_shuffle_cdf, all_cdf, dsets):
     """
@@ -3458,7 +3378,7 @@ def get_empirical_pvalues(all_shuffle_cdf, all_cdf, dsets):
         for i, clust in enumerate(all_shuffle_cdf[dset].keys()):
             pctiles = get_shuffle_percentile(all_shuffle_cdf[dset][clust],
                                              all_cdf[dset][clust])
-            pvalues = 2*(0.5 - np.abs(pctiles/100 - 0.5)) ### Two tailed...
+            pvalues = 2*(0.5 - np.abs(pctiles/100 - 0.5))  # Two tailed...
             all_pvals[dset][clust] = pvalues
     return all_pvals
 
@@ -3481,7 +3401,8 @@ def get_corrected_pvals(all_pvals):
         flat_pvals = np.reshape(pvals, (pvals.shape[0] * pvals.shape[1]))
         _, corr_pvals, _, _ = multipletests(flat_pvals, alpha=0.05,
                                             method='fdr_bh',
-                                            is_sorted=False, returnsorted=False)
+                                            is_sorted=False,
+                                            returnsorted=False)
         corr_pvals = np.reshape(corr_pvals, (pvals.shape[0], pvals.shape[1]))
 
         corr_pvals_dict = dict()
@@ -3490,6 +3411,7 @@ def get_corrected_pvals(all_pvals):
 
         all_corr_pvals[dset] = corr_pvals_dict
     return all_corr_pvals
+
 
 def generate_all_pairwise_dists(labels, centroids,
                                 dsets_spatial, clusts,
@@ -3505,8 +3427,8 @@ def generate_all_pairwise_dists(labels, centroids,
     :param clusts: list of clusts to use (i.e. range(1, 6)
     :param spatial_stat_dir: string. location to save stuff out.
     :param nshuff: how many shuffles to perform.
-    :return: all_shuffle_dists: dict. key: dataset. val: key: cluster
-                                                         val: [nshuffles x npairs]
+    :return: all_shuffle_dists: dict. key: dataset.
+                val: key: cluster val: [nshuffles x npairs]
              all_dists: dict. key: dataset. val: key: cluster
                                                   val: [npairs]
     """
@@ -3547,8 +3469,9 @@ def generate_all_pairwise_dists(labels, centroids,
             all_shuffle_dists[dd][clust] = np.vstack(
                 all_shuffle_dists[dd][clust])
             print(time.time() - t0)
-            fname = os.path.join(spatial_stat_dir,
-                                 '{}_clust_{}_pairwise_dists_nshuff_{}.npz'.format(
+            fname = os.path.join(
+                spatial_stat_dir,
+                '{}_clust_{}_pairwise_dists_nshuff_{}.npz'.format(
                                      dd, clust, nshuff))
             with open(fname, 'wb') as f:
                 np.savez(f, shuffle_dists=all_shuffle_dists[dd][clust],
@@ -3584,11 +3507,13 @@ def generate_hists_from_dists(all_shuffle_dists, all_dists,
             # all_shuffle_hist[dset][clust] = shuffs
             all_shuffle_hist[dset][clust] = np.vstack(shuffs)
 
-            h, _ = np.histogram(all_dists[dset][clust], bins=bins, density=True)
+            h, _ = np.histogram(
+                all_dists[dset][clust], bins=bins, density=True)
             all_hist[dset][clust] = h
         print(time.time() - t0)
 
     return (all_shuffle_hist, all_hist)
+
 
 def overlay_on_null_dist(shuffles, vals,
                          corrected_pvals,
@@ -3642,6 +3567,7 @@ def overlay_on_null_dist(shuffles, vals,
              markersize=1, linewidth=0.5)
     plt.gca().spines['right'].set_visible(False)
     plt.gca().spines['top'].set_visible(False)
+
 
 def overlay_spatial_cdfs_on_null_dist(all_shuffle_cdf,
                                       all_cdf,
@@ -3703,10 +3629,11 @@ def overlay_spatial_cdfs_on_null_dist(all_shuffle_cdf,
             if savepath is not None:
                 a = 1
                 plt.gcf().set_size_inches(w=a*3.5 / 5 * len(clusts),
-                                          h=a*0.75)  # Control size of figure in inches
+                                          h=a*0.75)
                 plt.savefig(os.path.join(savepath,
                             '{}_pairwise_spatial_dist_cdf.pdf'.format(
                                              dset)))
+
 
 def overlay_spatial_hists_on_null_dist(all_shuffle_hist,
                                        all_hist,
@@ -3767,10 +3694,11 @@ def overlay_spatial_hists_on_null_dist(all_shuffle_hist,
             if savepath is not None:
                 a = 1
                 plt.gcf().set_size_inches(w=a*3.5 / 5 * len(clusts),
-                                          h=a*0.75)  # Control size of figure in inches
+                                          h=a*0.75)
                 plt.savefig(os.path.join(savepath,
                             '{}_pairwise_spatial_dist_hist.pdf'.format(
                                              dset)))
+
 
 def plot_simulated_clusters(fake_dset,
                             fake_labels,
@@ -3791,11 +3719,12 @@ def plot_simulated_clusters(fake_dset,
     plot_centroids(which_sources, CT, max_radius=1)
 
     if savedir is not None:
-        plt.gcf().set_size_inches(w=1, h=1) # Control size of figure in inches
+        plt.gcf().set_size_inches(w=1, h=1)
         os.makedirs(savedir, exist_ok=True)
         savename = '{}_simulated_cluster_map.pdf'.format(fake_dset)
         plt.savefig(os.path.join(savedir, savename),
                     transparent=True, rasterized=True, dpi=600)
+
 
 def get_all_fake_labels_and_centroids(which_fake_dsets,
                                       template_labels,
@@ -3823,7 +3752,7 @@ def get_all_fake_labels_and_centroids(which_fake_dsets,
     """
     all_fake_labels = dict()
     all_fake_centroids = dict()
-    for fake_dset in which_fake_dsets:  ## Different sizes and a bilateral
+    for fake_dset in which_fake_dsets:
 
         (fake_labels,
          fake_centroids) = get_fake_labels_and_centroids(
@@ -3844,16 +3773,17 @@ def get_all_fake_labels_and_centroids(which_fake_dsets,
     return all_fake_labels, all_fake_centroids
 
 
-def get_fake_labels_and_centroids(example_labels, example_centroids, fake_dset):
+def get_fake_labels_and_centroids(
+        example_labels, example_centroids, fake_dset):
     """Make hand-generated cluster spatial arrangements.
 
     Args:
         example_labels: [nsources]
         example_centroids: [nsources x 2]
-        fake_dset: The id of the fake dataset (see the if statements in the function).
-                        Note: Do not make these overlap with any existing datasets
-                        (i.e. [7, 11, 18, 19, 35]) since it will overwrite their
-                        spatial analysis files.
+        fake_dset: The id of the fake dataset
+            Note: Do not make these overlap with any existing datasets
+            (i.e. [7, 11, 18, 19, 35]) since it will overwrite their
+            spatial analysis files.
     """
     np.random.seed(1)
     fake_labels = np.zeros(example_labels.shape)
@@ -3863,7 +3793,8 @@ def get_fake_labels_and_centroids(example_labels, example_centroids, fake_dset):
         c = [1.5, 4]
         num_extra = 30
         fake_cluster = get_points_in_circle(fake_centroids, d, c)
-        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1 # 33%
+        # 33%
+        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1
         fake_labels = include_random_points(fake_labels, num_extra)
 
     elif fake_dset == 131:
@@ -3871,7 +3802,7 @@ def get_fake_labels_and_centroids(example_labels, example_centroids, fake_dset):
         c = [1.5, 4]
         num_extra = 30
         fake_cluster = get_points_in_circle(fake_centroids, d, c)
-        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1 # 33%
+        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1
         fake_labels = include_random_points(fake_labels, num_extra)
 
     elif fake_dset == 132:
@@ -3879,7 +3810,7 @@ def get_fake_labels_and_centroids(example_labels, example_centroids, fake_dset):
         c = [1.5, 4]
         num_extra = 30
         fake_cluster = get_points_in_circle(fake_centroids, d, c)
-        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1  # 33%
+        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1
         fake_labels = include_random_points(fake_labels, num_extra)
 
     elif fake_dset == 133:
@@ -3887,7 +3818,7 @@ def get_fake_labels_and_centroids(example_labels, example_centroids, fake_dset):
         c = [1.5, 4]
         num_extra = 30
         fake_cluster = get_points_in_circle(fake_centroids, d, c)
-        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1  # 33%
+        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1
         fake_labels = include_random_points(fake_labels, num_extra)
 
     elif fake_dset == 134:
@@ -3897,9 +3828,9 @@ def get_fake_labels_and_centroids(example_labels, example_centroids, fake_dset):
         c2 = [6.5, 4]
         num_extra = 30
         fake_cluster = get_points_in_circle(fake_centroids, d1, c1)
-        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1  # 33%
+        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1
         fake_cluster = get_points_in_circle(fake_centroids, d2, c2)
-        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1  # 33%
+        fake_labels[fake_cluster[np.arange(0, len(fake_cluster), 3)]] = 1
         fake_labels = include_random_points(fake_labels, num_extra)
 
     else:
@@ -3931,9 +3862,11 @@ def get_points_in_circle(centroids, d, c):
     :return:
     """
     r = d/2
-    ids = np.where(np.sqrt((centroids[:, 0] - c[0])**2 \
-                         + (centroids[:, 1] - c[1])**2) < r)[0]
+    ids = np.where(
+        np.sqrt((centroids[:, 0] - c[0])**2
+                + (centroids[:, 1] - c[1])**2) < r)[0]
     return ids
+
 
 def plot_sources_at_high_correlation_timepoints(sources_to_corr,
                                                 traces_to_corr,
@@ -3957,7 +3890,7 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
     :param sources_to_plot: list of source ids. If None, will just use
                             sources_to_corr.
     :param traces_to_plot: [all_sources x time*trials]. Which traces to use
-                           for plotting (in addition to plotting traces_to_corr).
+                        for plotting (in addition to plotting traces_to_corr).
                            If None, will just use traces_to_corr.
     :param savedir: Save location, if not None.
     :param window_size: Size of window (in frames) for computing correlation.
@@ -3969,9 +3902,9 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
     if savedir is not None:
         os.makedirs(savedir, exist_ok=True)
 
-    dt = 0.034 # Frame length in seconds
+    dt = 0.034  # Frame length in seconds
 
-    ### Compute windowed correlation between sources.
+    # Compute windowed correlation between sources.
     wc, w_ind = utils.get_windowed_corr(traces_to_corr[sources_to_corr, :],
                                         window=int(window_size))
 
@@ -3982,7 +3915,8 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
     for n in np.argsort(-np.array(wc))[:n_to_plot]:
         do_recenter = True
         if do_recenter:
-            window = traces_to_corr[sources_to_corr, w_ind[n] - buffer:w_ind[n] + buffer]
+            window = traces_to_corr[
+                sources_to_corr, w_ind[n] - buffer:w_ind[n] + buffer]
             window_mean = np.mean(window, axis=0)
             window_peak = np.argmax(window_mean)
             ind = window_peak + w_ind[n] - buffer
@@ -4017,12 +3951,13 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
                     bin_spikes[bin_spikes == 0] = np.nan
 
                     if do_zscore:
-                        plt.plot(x, -4 - 2* i + bin_spikes[x0:x1],
+                        plt.plot(x, -4 - 2*i + bin_spikes[x0:x1],
                                  '|', markersize=9, markeredgewidth=1,
                                  color=colors[i])
                     else:
                         plt.plot(x, -15 - 10*i + bin_spikes[x0:x1],
-                                 '|', markersize=9, markeredgewidth=1, color=colors[i])
+                                 '|', markersize=9,
+                                 markeredgewidth=1, color=colors[i])
 
                 if do_zscore:
                     plt.ylabel('Zscore')
@@ -4031,21 +3966,27 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
                     plt.ylim(ylim)
                 xticklocs = dt*frame + np.arange(-6, 7, 2)
 
-            elif plot_method == 'do_overlay_traces': # Old
+            elif plot_method == 'do_overlay_traces':  # Old
                 for i in range(len(sources_to_plot)):
-                    plt.plot(dt * np.arange((frame - buffer), (frame + buffer)),
-                             traces[sources_to_plot[i], frame - buffer:frame + buffer] + 0)
+                    plt.plot(dt * np.arange(
+                                (frame - buffer), (frame + buffer)),
+                             traces[sources_to_plot[i],
+                             frame - buffer:frame + buffer] + 0)
 
                 plt.ylabel('Event rate (Hz)')
-                xticklocs = [dt * (frame - 100), dt * frame, dt * (frame + 100)]
-            else: # Old
-                plt.imshow(traces[sources_to_plot, frame - buffer:frame + buffer],
+                xticklocs = [dt * (frame - 100),
+                             dt * frame, dt * (frame + 100)]
+            else:  # Old
+                plt.imshow(traces[sources_to_plot,
+                                  frame - buffer:frame + buffer],
                            aspect='auto', cmap='Greys', clim=clim,
-                           extent=[dt * (frame - buffer), dt * (frame + buffer), 0,
+                           extent=[dt * (frame - buffer),
+                                   dt * (frame + buffer), 0,
                                    len(sources_to_plot)])
                 plt.ylabel('Source')
 
-                xticklocs = [dt * frame - 6, dt * frame - 4, dt * frame - 2, dt * frame,
+                xticklocs = [dt * frame - 6, dt * frame - 4, dt * frame - 2,
+                             dt * frame,
                              dt * frame + 2, dt * frame + 4, dt * frame + 6]
                 plt.xticks(xticklocs,
                            np.floor(np.array(xticklocs)))
@@ -4054,7 +3995,7 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
             savename = 'traces_{}.pdf'.format(frame)
             if savedir is not None:
                 plt.gcf().set_size_inches(w=2,
-                                          h=2)  # Control size of figure in inches
+                                          h=2)
                 plt.xticks(xticklocs,
                            np.floor(np.array(xticklocs)).astype(int))
                 plt.yticks(yticklocs,
@@ -4066,7 +4007,8 @@ def plot_sources_at_high_correlation_timepoints(sources_to_corr,
     return frames_to_plot
 
 
-def plot_high_correlation_timepoints(traces, which_cells, corr_cells=None, savedir=None,
+def plot_high_correlation_timepoints(traces, which_cells, corr_cells=None,
+                                     savedir=None,
                                      n_to_plot=15, window_size=100,
                                      do_overlay_traces=False,
                                      do_zscore=False,
@@ -4074,24 +4016,28 @@ def plot_high_correlation_timepoints(traces, which_cells, corr_cells=None, saved
     """
     For a specified subset of cells
     (i.e. defined based on np.where(clustering == which_clust)[0]),
-    find the timepoints of highest correlation, and then imshow the individual traces
+    find the timepoints of highest correlation,
+    and then imshow the individual traces
     around that timepoint.
 
-    :param traces: [ncells x nframes] traces of all sources (i.e. CT.S, the full traces)                                  )
+    :param traces: [ncells x nframes] traces of all sources
+        (i.e. CT.S, the full traces)
     :param which_cells: [ncells_in_cluster] List of indices of cells to include
     :param corr_cells: List of indices to use to calculate high correlation
     :param n_to_plot: int. The number of timepoints for which to make plots
-    :param window_size: int. Number of frames before and after the high-correlation timepoint
+    :param window_size: int. Number of frames before and
+                                after the high-correlation timepoint
                              to include in each plot.
 
     """
     if savedir is not None:
         os.makedirs(savedir, exist_ok=True)
 
-    ### Compute windowed correlation between sources.
+    # Compute windowed correlation between sources.
     if corr_cells is None:
         corr_cells = which_cells
-    wc, w_ind = utils.get_windowed_corr(traces[corr_cells, :], window=int(window_size)) #window=50
+    wc, w_ind = utils.get_windowed_corr(
+        traces[corr_cells, :], window=int(window_size))  # window=50
 
     plt.figure()
     plt.plot(w_ind, wc)
@@ -4103,7 +4049,7 @@ def plot_high_correlation_timepoints(traces, which_cells, corr_cells=None, saved
         plt.savefig(os.path.join(savedir, savename),
                     transparent=True, rasterized=True, dpi=600)
 
-    ### Plot timepoints of high correlation
+    # Plot timepoints of high correlation
     dt = 0.034
     if do_zscore:
         smoothZ = zscore(traces, axis=1)
@@ -4125,9 +4071,10 @@ def plot_high_correlation_timepoints(traces, which_cells, corr_cells=None, saved
             if do_overlay_traces:
                 for i in range(len(which_cells)):
                     plt.plot(dt * np.arange((ind - buffer), (ind + buffer)),
-                             smoothZ[which_cells[i], ind - buffer:ind + buffer] + 0)
+                             smoothZ[
+                                 which_cells[i],
+                                 ind - buffer:ind + buffer] + 0)
 
-                # plt.plot(dt * np.arange((ind - buffer), (ind + buffer)), smoothZ[which_cells, ind - buffer:ind + buffer].T)
                 plt.ylabel('Event rate (Hz)')
                 xticklocs = [dt * (ind - 100), dt * ind, dt * (ind + 100)]
             else:
@@ -4136,40 +4083,36 @@ def plot_high_correlation_timepoints(traces, which_cells, corr_cells=None, saved
                            extent=[dt * (ind - buffer), dt * (ind + buffer), 0,
                                    len(which_cells)])
                 plt.ylabel('Source')
-                # xticklocs = [dt * (ind - buffer), dt * ind, dt * (ind + buffer)]
-                # plt.xticks(xticklocs,
-                #            ['', np.floor(dt * ind), ''])
 
-                xticklocs = [dt*ind - 6, dt*ind - 4, dt*ind - 2, dt * ind, dt*ind + 2, dt*ind + 4,  dt*ind + 6]
+                xticklocs = [dt*ind - 6, dt*ind - 4, dt*ind - 2,
+                             dt * ind, dt*ind + 2, dt*ind + 4,  dt*ind + 6]
                 plt.xticks(xticklocs,
                            np.floor(np.array(xticklocs)))
 
-
             plt.title('R: {:.3f}'.format(wc[n]))
-
-
             plt.xlabel('Time (s)')
 
             savename = 'traces_{}.pdf'.format(w_ind[n])
 
             if savedir is not None:
-                plt.gcf().set_size_inches(w=1, h=1.5)  # Control size of figure in inches
+                plt.gcf().set_size_inches(w=1, h=1.5)
                 plt.savefig(os.path.join(savedir, savename),
                             transparent=True, rasterized=True, dpi=600)
+
 
 def plot_cluster_contours(CT, which_cells, which_base_im, name,
                           fig_save_path=None,
                           just_show_highlighted=True,
                           do_display_numbers=False,
                           show_footprints=False,
-                          edge_color=(1,1,1,1)):
+                          edge_color=(1, 1, 1, 1)):
     """
     Plot the contours of the spatial footprint of the sources in a cluster
-    (or any arbitrary set of sources). Optionally include an atlas and brain image.
+    (or any arbitrary set of sources). Optionally include an atlas.
     The output of this can be imported into imagej and overlaid
     on a raw video of the neural activity.
 
-    :param CT: CosmosTraces object (which contains the footprints of each source)
+    :param CT: CosmosTraces object (contains the footprints of each source)
     :param which_cells: array with the indices of the sources in a cluster
     :param which_base_im: Specify which base image to plot under the contours.
                           1 - atlas outline and brain image
@@ -4180,8 +4123,8 @@ def plot_cluster_contours(CT, which_cells, which_base_im, name,
     :param name: string. Identify the dataset and cluster id.
     :param fig_save_path: If not None, location to save out the plot.
     :param just_show_highlighted: bool. Only show the contours of sources
-                                  in the cluster. (Takes longer if this is false.)
-    :param do_display_numbers: bool. Display the source_id next to each contour.
+                                  in the cluster. (Takes longer if false.)
+    :param do_display_numbers: bool. Display the source_id with each contour.
     :param show_footprints: bool. If True then display the
                             footprint corresponding to each source
                             in addition to the contour of that footprint.
@@ -4211,25 +4154,27 @@ def plot_cluster_contours(CT, which_cells, which_base_im, name,
                      date='Clusters',
                      name=name,
                      fig_save_path=fig_save_path,
-                     suffix=name + '_' + str(which_base_im) + '_' + str(int(show_footprints)) +'.png',
+                     suffix=(name + '_' + str(which_base_im) +
+                             '_' + str(int(show_footprints)) + '.png'),
                      cmap=plt.cm.winter)
 
     CP.set_highlighted_neurons(which_cells)
 
     plt.figure(figsize=(20, 20))
-    coords = CP.plot_contours(highlight_neurons=not just_show_highlighted, \
-                     display_numbers=do_display_numbers,
-                     ax=plt.subplot(111),
-                     atlas_outline=None,
-                     just_show_highlighted=just_show_highlighted,
-                     highlight_color=(0, 0, 0, 0),
-                     edge_color=edge_color,
-                     contour_linewidth=2,
-                     maxthr=0.5,
-                     no_borders=True,
-                     show_footprints=show_footprints,
-                     rotate_image=False)
+    coords = CP.plot_contours(highlight_neurons=not just_show_highlighted,
+                              display_numbers=do_display_numbers,
+                              ax=plt.subplot(111),
+                              atlas_outline=None,
+                              just_show_highlighted=just_show_highlighted,
+                              highlight_color=(0, 0, 0, 0),
+                              edge_color=edge_color,
+                              contour_linewidth=2,
+                              maxthr=0.5,
+                              no_borders=True,
+                              show_footprints=show_footprints,
+                              rotate_image=False)
     return coords
+
 
 def save_clustering(filename,
                     W, H, W_trial, Z, evr,
@@ -4250,26 +4195,33 @@ def save_clustering(filename,
     :param W: [time x clusters]. The time series of each cluster.
     :param H: [clusters x cells]. Weight of each cell in a cluster.
     :param W_trial: [clusters x ntime x ntrials]
-    :param Z: [time x neurons]. Zhat = W*H is the best approx of Z = rates_flat.T
+    :param Z: [time x neurons].
+        Zhat = W*H is the best approx of Z = rates_flat.T
     :param evr: [clusters] explained variance of each cluster basis.
-    :param ordering: [clusters] Ordering of the clusters (i.e. according to peak time).
+    :param ordering: [clusters]
+        Ordering of the clusters (i.e. according to peak time).
                                 ordering[0] is the new position of cluster 0.
     :param clustering: [ncells]. Assignment of each cell to a cluster.
-    :param centroid_atlas_coords: [ncells x 2] Atlas-transformed centroid of each source
-                                  (for plotting spatial distribution).
-    :param ordered_clustering: [ncells]. For each cell, the ordered position of its cluster.
-    :param ordered_super_clustering: [ncells] For each cell, the ordered position of its supercluster.
-                                      Potentially None, if no superclustering was performed.
-    :param trial_sets: [n_trial_types]. The assignment of trial to each trial type.
+    :param centroid_atlas_coords: [ncells x 2]
+        Atlas-transformed centroid of each source
+        (for plotting spatial distribution).
+    :param ordered_clustering: [ncells].
+        For each cell, the ordered position of its cluster.
+    :param ordered_super_clustering: [ncells]
+        For each cell, the ordered position of its supercluster.
+        Potentially None, if no superclustering was performed.
+    :param trial_sets: [n_trial_types].
+        The assignment of trial to each trial type.
     :param trial_names: [n_trial_types]. The name of each trial type.
-    :param super_clust_info: dict that contains: 'super_clustering' - the assignment
-                                                        of each cluster to a supercluster
-                                                'super_clust_titles' - the name of
-                                                        each supercluster
+    :param super_clust_info: dict contains:
+        'super_clustering' - the assignment of each cluster to a supercluster
+        'super_clust_titles' - the name of each supercluster
 
-    :param trial_set_inds: list. start index for each of the concatenated trial types.
-    :param corr_coef: [ncells x ncells] The correlation coefficient of each source
-                                        with the others sources.
+    :param trial_set_inds: list. start index for
+        each of the concatenated trial types.
+    :param corr_coef: [ncells x ncells]
+        The correlation coefficient of each source
+        with the others sources.
     """
 
     nmf_results = {'W': W,

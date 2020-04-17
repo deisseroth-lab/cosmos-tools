@@ -12,6 +12,7 @@ from cosmos.util.nnls import nnlsm_blockpivot as nnlstsq
 import itertools
 from scipy.spatial.distance import cdist
 
+
 def censored_lstsq(A, B, M):
     """Solves least squares problem with missing data in B
 
@@ -29,18 +30,20 @@ def censored_lstsq(A, B, M):
     """
 
     if A.ndim == 1:
-        A = A[:,None]
+        A = A[:, None]
 
     # else solve via tensor representation
-    rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
-    T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
+    rhs = np.dot(A.T, M * B).T[:, :, None]  # n x r x 1 tensor
+    T = np.matmul(
+        A.T[None, :, :], M.T[:, :, None] * A[None, :, :])  # n x r x r tensor
     try:
         # transpose to get r x n
         return np.squeeze(np.linalg.solve(T, rhs), axis=-1).T
-    except:
+    except Exception:
         r = T.shape[1]
-        T[:,np.arange(r),np.arange(r)] += 1e-6
+        T[:, np.arange(r), np.arange(r)] += 1e-6
         return np.squeeze(np.linalg.solve(T, rhs), axis=-1).T
+
 
 def censored_nnlstsq(A, B, M):
     """Solves nonnegative least-squares problem with missing data in B
@@ -56,13 +59,16 @@ def censored_nnlstsq(A, B, M):
     X (ndarray) : nonnegative r x n matrix that minimizes norm(M*(AX - B))
     """
     if A.ndim == 1:
-        A = A[:,None]
-    rhs = np.dot(A.T, M * B).T[:,:,None] # n x r x 1 tensor
-    T = np.matmul(A.T[None,:,:], M.T[:,:,None] * A[None,:,:]) # n x r x r tensor
+        A = A[:, None]
+    rhs = np.dot(
+        A.T, M * B).T[:, :, None]  # n x r x 1 tensor
+    T = np.matmul(
+        A.T[None, :, :], M.T[:, :, None] * A[None, :, :])  # n x r x r tensor
     X = np.empty((B.shape[1], A.shape[1]))
     for n in range(B.shape[1]):
         X[n] = nnlstsq(T[n], rhs[n], is_input_prod=True)[0].T
     return X.T
+
 
 def cv_pca(data, rank, M=None, p_holdout=0.3, nonneg=False):
     """Fit PCA or NMF while holding out a fraction of the dataset.
@@ -166,12 +172,13 @@ def plot_pca():
     ax.set_ylabel('Mean Squared Error')
     ax.set_xlabel('Number of PCs')
     ax.set_title('PCA')
-    ax.axvline(4, color='k', dashes=[2,2])
+    ax.axvline(4, color='k', dashes=[2, 2])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.legend()
     fig.tight_layout()
     fig.savefig('../../img/pca-crossval/pca_cv_curve.pdf')
+
 
 def plot_nmf():
     # parameters
@@ -199,12 +206,13 @@ def plot_nmf():
     ax.set_ylabel('Mean Squared Error')
     ax.set_xlabel('Number of factors')
     ax.set_title('NMF')
-    ax.axvline(4, color='k', dashes=[2,2])
+    ax.axvline(4, color='k', dashes=[2, 2])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.legend()
     fig.tight_layout()
     fig.savefig('../../img/pca-crossval/nmf_cv_curve.pdf')
+
 
 def plot_kmeans():
     # parameters
@@ -229,8 +237,8 @@ def plot_kmeans():
 
     rr = np.array(rr)
     train_err, test_err = np.array(train_err), np.array(test_err)
-    mean_train = [np.mean(train_err[rr==rnk]) for rnk in ranks]
-    mean_test = [np.mean(test_err[rr==rnk]) for rnk in ranks]
+    mean_train = [np.mean(train_err[rr == rnk]) for rnk in ranks]
+    mean_test = [np.mean(test_err[rr == rnk]) for rnk in ranks]
 
     # make plot
     fig, ax = plt.subplots(1, 1, figsize=(4, 3.5))
@@ -239,7 +247,7 @@ def plot_kmeans():
     ax.set_ylabel('Mean Squared Error')
     ax.set_xlabel('Number of clusters')
     ax.set_title('K-means clustering')
-    ax.axvline(4, color='k', dashes=[2,2])
+    ax.axvline(4, color='k', dashes=[2, 2])
     ax.plot(rr, train_err, 'ob', alpha=.5, ms=3, mec=None)
     ax.plot(rr, test_err, 'or', alpha=.5, ms=3, mec=None)
     ax.spines['top'].set_visible(False)

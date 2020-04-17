@@ -98,8 +98,10 @@ class CellPlotter:
                 normed_trace = self.traces[idx, :nt]/scale_factor
                 normed_raw_trace = self.traces_raw[idx, :nt]/scale_factor
             else:
-                normed_trace, scale_factor = self._normalize(self.traces[idx, :nt])
-                normed_raw_trace, _ = self._normalize(self.traces_raw[idx, :nt])
+                normed_trace, scale_factor = self._normalize(
+                    self.traces[idx, :nt])
+                normed_raw_trace, _ = self._normalize(
+                    self.traces_raw[idx, :nt])
 
             if self.cmap is not None:
                 linecolor = 'k'
@@ -171,7 +173,7 @@ class CellPlotter:
                                       This is generally significantly faster
                                       at plotting.
         :param contour_linewidth: int. Set the linewidth
-        :param color_list: Optionally provide  a list of colors for each source.
+        :param color_list: Optionally provide a list of colors for each source.
         :param show_footprints: bool. If True then display the
                                 footprint corresponding to each source
                                 in addition to the contour of that footprint.
@@ -269,9 +271,9 @@ class CellPlotter:
         if show_footprints:
             for i in range(ff_h.shape[2]):
                 if rotate_image:
-                    ff_show = rotate(ff_h[:,:,i], -90)
+                    ff_show = rotate(ff_h[:, :, i], -90)
                 else:
-                    ff_show = ff_h[:,:,i]
+                    ff_show = ff_h[:, :, i]
                 transp_imshow(ff_show,
                               cmap='Blues', gam=1)
 
@@ -283,8 +285,9 @@ class CellPlotter:
                     os.makedirs(fig_save_dir)
                 print('Saving to ' + os.path.join(
                     fig_save_dir, 'contours_' + self.suffix))
-                fname = os.path.join(fig_save_dir, 'contours_' + 'atlas'
-                                     + str(int(atlas_outline is not None)) + '_'+ self.suffix)
+                fname = os.path.join(
+                    fig_save_dir, 'contours_' + 'atlas'
+                    + str(int(atlas_outline is not None)) + '_' + self.suffix)
                 plt.savefig(
                         fname,
                         bbox_inches='tight',

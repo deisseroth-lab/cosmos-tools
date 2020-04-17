@@ -9,7 +9,7 @@ import scipy.linalg as sla
 import time
 
 """
-The remaining code in this file was written and shared by Jingu Kim (@kimjingu).
+The remaining code in this file was written and shared by Jingu Kim (@kimjingu)
 
 REPO:
 ----
@@ -43,13 +43,16 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+
 def nnlsm_blockpivot(A, B, is_input_prod=False, init=None):
-    """ Nonnegativity-constrained least squares with block principal pivoting method and column grouping
+    """ Nonnegativity-constrained least squares with block principal
+    pivoting method and column grouping
 
     Solves min ||AX-B||_2^2 s.t. X >= 0 element-wise.
 
-    J. Kim and H. Park, Fast nonnegative matrix factorization: An active-set-like method and comparisons,
-    SIAM Journal on Scientific Computing, 
+    J. Kim and H. Park, Fast nonnegative matrix factorization:
+    An active-set-like method and comparisons,
+    SIAM Journal on Scientific Computing,
     vol. 33, no. 6, pp. 3261-3281, 2011.
 
     Parameters
@@ -59,21 +62,26 @@ def nnlsm_blockpivot(A, B, is_input_prod=False, init=None):
 
     Optional Parameters
     -------------------
-    is_input_prod : True/False. -  If True, the A and B arguments are interpreted as
+    is_input_prod : True/False. -  If True, the A and B arguments
+            are interpreted as
             AtA and AtB, respectively. Default is False.
-    init: numpy.array, shape (n,k). - If provided, init is used as an initial value for the algorithm.
+    init: numpy.array, shape (n,k). - If provided, init is used as an
+            initial value for the algorithm.
             Default is None.
 
     Returns
     -------
     X, (success, Y, num_cholesky, num_eq, num_backup)
     X : numpy.array, shape (n,k) - solution
-    success : True/False - True if the solution is found. False if the algorithm did not terminate
+    success : True/False - True if the solution is found.
+            False if the algorithm did not terminate
             due to numerical errors.
     Y : numpy.array, shape (n,k) - Y = A.T * A * X - A.T * B
     num_cholesky : int - the number of Cholesky factorizations needed
-    num_eq : int - the number of linear systems of equations needed to be solved
-    num_backup: int - the number of appearances of the back-up rule. See SISC paper for details.
+    num_eq : int - the number of linear systems of
+            equations needed to be solved
+    num_backup: int - the number of appearances of the
+            back-up rule. See SISC paper for details.
     """
     if is_input_prod:
         AtA = A
@@ -174,11 +182,13 @@ def nnlsm_blockpivot(A, B, is_input_prod=False, init=None):
 
 
 def nnlsm_activeset(A, B, overwrite=False, is_input_prod=False, init=None):
-    """ Nonnegativity-constrained least squares with active-set method and column grouping
+    """ Nonnegativity-constrained least squares with
+    active-set method and column grouping
 
     Solves min ||AX-B||_2^2 s.t. X >= 0 element-wise.
 
-    Algorithm of this routine is close to the one presented in the following paper but
+    Algorithm of this routine is close to the one presented in
+    the following paper but
     is different in organising inner- and outer-loops:
     M. H. Van Benthem and M. R. Keenan, J. Chemometrics 2004; 18: 441-450
 
@@ -189,20 +199,24 @@ def nnlsm_activeset(A, B, overwrite=False, is_input_prod=False, init=None):
 
     Optional Parameters
     -------------------
-    is_input_prod : True/False. -  If True, the A and B arguments are interpreted as
+    is_input_prod : True/False. -  If True, the A and B arguments
+            are interpreted as
             AtA and AtB, respectively. Default is False.
-    init: numpy.array, shape (n,k). - If provided, init is used as an initial value for the algorithm.
+    init: numpy.array, shape (n,k). - If provided, init is used as an
+            initial value for the algorithm.
             Default is None.
 
     Returns
     -------
     X, (success, Y, num_cholesky, num_eq, num_backup)
     X : numpy.array, shape (n,k) - solution
-    success : True/False - True if the solution is found. False if the algorithm did not terminate
+    success : True/False - True if the solution is found. False if the
+            algorithm did not terminate
             due to numerical errors.
     Y : numpy.array, shape (n,k) - Y = A.T * A * X - A.T * B
     num_cholesky : int - the number of Cholesky factorizations needed
-    num_eq : int - the number of linear systems of equations needed to be solved
+    num_eq : int - the number of linear systems of equations needed
+            to be solved
     """
     if is_input_prod:
         AtA = A
@@ -225,7 +239,7 @@ def nnlsm_activeset(A, B, overwrite=False, is_input_prod=False, init=None):
         X, num_cholesky, num_eq = normal_eq_comb(AtA, AtB)
         PassSet = X > 0
         not_opt_set = np.any(X < 0, axis=0)
-    elif init != None:
+    elif init != None:  # noqa
         X = init
         X[X < 0] = 0
         PassSet = X > 0
@@ -338,7 +352,8 @@ def normal_eq_comb(AtA, AtB, PassSet=None):
                 num_eq = 1
         else:
             #
-            # Both _column_group_loop() and _column_group_recursive() work well.
+            # Both _column_group_loop() and _column_group_recursive()
+            # work well.
             # Based on preliminary testing,
             # _column_group_loop() is slightly faster for tiny k(<10), but
             # _column_group_recursive() is faster for large k's.
@@ -350,8 +365,10 @@ def normal_eq_comb(AtA, AtB, PassSet=None):
                     ix1 = np.ix_(cols, gr)
                     ix2 = np.ix_(cols, cols)
                     #
-                    # scipy.linalg.cho_solve can be used instead of numpy.linalg.solve.
-                    # For small n(<200), numpy.linalg.solve appears faster, whereas
+                    # scipy.linalg.cho_solve can be used instead
+                    # of numpy.linalg.solve.
+                    # For small n(<200), numpy.linalg.solve
+                    # appears faster, whereas
                     # for large n(>500), scipy.linalg.cho_solve appears faster.
                     # Usage example of scipy.linalg.cho_solve:
                     # Z[ix1] = sla.cho_solve(sla.cho_factor(AtA[ix2]),AtB[ix1])

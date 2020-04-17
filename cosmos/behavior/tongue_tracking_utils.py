@@ -36,7 +36,7 @@ def loadmat(filename):
 
     def _todict(matobj):
         '''
-        A recursive function which constructs from matobjects nested dictionaries
+        A recursive function which constructs from matobjects nested dicts
         '''
         d = {}
         for strg in matobj._fieldnames:
@@ -96,7 +96,7 @@ def plot_peri_spout_density(trial, frame_idx, tongue_positions,
                        np.max([spout_positions[ff, 0]-rng, 0]), -1)
             try:
                 density += tongue_positions[ff]['mask'][rx, ry]
-            except:
+            except Exception:
                 print('skipped frame...')
                 continue
             area.append(tongue_positions[ff]['area'])
@@ -185,7 +185,7 @@ def plot_tongue_densities(trial, stack, frame_idx, tongue_positions,
 
 
 def plot_tongue_tracking(stack, frames, tongue_positions,
-                         spout_positions, n_spout=1, 
+                         spout_positions, n_spout=1,
                          min_area=100, interval=50):
     """ Plot an animation of the segmentation. """
 

@@ -66,13 +66,14 @@ try:
     import bokeh.plotting as bpl
     from bokeh.models import CustomJS, ColumnDataSource, Range1d
     from bokeh.plotting import figure
-except:
+except ImportError:
     print("Bokeh could not be loaded.")
 
 from cosmos.traces.cell_plotter import CellPlotter
 import cosmos.imaging.atlas_registration as reg
 
 import random
+
 
 def flatten_traces(traces):
     """
@@ -82,8 +83,8 @@ def flatten_traces(traces):
     :return:
     """
     flattened = np.reshape(traces,
-                        (traces.shape[0], traces.shape[1]*traces.shape[2]),
-                        order='F')
+                           (traces.shape[0], traces.shape[1]*traces.shape[2]),
+                           order='F')
     return flattened
 
 
@@ -162,7 +163,6 @@ def make_visual_to_other_area_comparison_plots(all_gs):
     alpha = 0.05
     reject, pvals, _, _ = mt.multipletests(pvals, alpha=alpha, method='fdr_bh')
     for p, name in zip(pvals, names):
-        #p *= nComps
         stars = ''
         if p < 0.0001:
             stars = '****'
@@ -173,8 +173,6 @@ def make_visual_to_other_area_comparison_plots(all_gs):
         elif p < 0.05:
             stars = '*'
         print(stars, p, name)
-    #if comp != nComps:
-    #    raise ValueError('Unexpected number of comparisons!')
     sns.despine()
     p_vals.append(p)
     plt.tight_layout()
@@ -246,6 +244,7 @@ def get_task_modulated(rates, trial_sets, max_pval=0.05):
 
     return task_modulated
 
+
 def get_task_modulated_gonogo(rates, trial_sets, max_pval=0.05):
     """
     Assess whether each source is significantly task modulated,
@@ -267,7 +266,8 @@ def get_task_modulated_gonogo(rates, trial_sets, max_pval=0.05):
         task = np.mean(rates[i, 65:155, :], axis=0)
         _, p_go = scipy.stats.ttest_rel(baseline[go_trials], task[go_trials])
         pval[i, 0] = p_go
-        _, p_nogo = scipy.stats.ttest_rel(baseline[nogo_trials], task[nogo_trials])
+        _, p_nogo = scipy.stats.ttest_rel(
+            baseline[nogo_trials], task[nogo_trials])
         pval[i, 1] = p_nogo
     task_modulated = pval < max_pval / len(pval)
 
@@ -291,7 +291,8 @@ def get_task_modulated_trial_type(rates, trial_sets, max_pval=0.05):
         for i in range(rates.shape[0]):
             baseline = np.mean(rates[i, 5:50, :], axis=0)
             task = np.mean(rates[i, 65:150, :], axis=0)
-            _, p = scipy.stats.ttest_rel(baseline[trial_sets[k]], task[trial_sets[k]])
+            _, p = scipy.stats.ttest_rel(
+                baseline[trial_sets[k]], task[trial_sets[k]])
             pval[i, k] = p
 
     task_modulated = pval < (max_pval / ncells)
@@ -461,10 +462,6 @@ def centroids_on_atlas(cell_weights, cell_ids, centroids, atlas_tform,
         if do_max_norm:
             cell_weights = np.abs(cell_weights / np.amax(cell_weights))
 
-        # cmap = plt.cm.get_cmap('jet', 500)
-        # rgba = cmap(cell_weights/np.max(cell_weights))
-        # rgba = cmap(cell_weights*2)
-
         if vmax is None:
             vmax = 1
         if vmin is None:
@@ -473,33 +470,18 @@ def centroids_on_atlas(cell_weights, cell_ids, centroids, atlas_tform,
         norm = mpl.colors.Normalize(vmin=min(cc), vmax=max(cc))
         rgba = plt.cm.ScalarMappable(
             norm=norm, cmap=cmap).to_rgba(cell_weights)
-                # norm=norm, cmap=plt.cm.hsv).to_rgba(cell_weights)
-                # norm=norm, cmap=plt.cm.plasma).to_rgba(cell_weights)
-        # elif  cmap == 'jet':
-        #     rgba = plt.cm.ScalarMappable(
-        #         # norm=norm, cmap=plt.cm.hsv).to_rgba(cell_weights)
-        #         norm=norm, cmap=plt.cm.jet).to_rgba(cell_weights)
-        #         # norm=norm, cmap=plt.cm.plasma).to_rgba(cell_weights)
-
         if set_alpha:
-            # import pdb; pdb.set_trace()
             alpha = cell_weights / np.nanmax(cell_weights)
             alpha = alpha**0.8
             alpha[alpha > 1] = 1
             alpha[alpha < 0] = 0
             rgba[:, 3] = alpha
-        # plt.scatter(atlas_coords[:, 0], atlas_coords[:, 1],
-        #             s=max_radius * cell_weights, c=cell_weights, cmap='jet')
-        # plt.scatter(atlas_coords[:, 0], atlas_coords[:, 1],
-        #            c=cell_weights, alpha=cell_weights, cmap='jet')
         if set_radius:
             radius = max_radius * cell_weights
         else:
             radius = max_radius
 
     if rotate90:
-        # rot_coords = np.zeros(atlas_coords.shape)
-
         plt.scatter(-atlas_coords[:, 1] + atlas_outline.shape[0],
                     atlas_coords[:, 0],
                     s=radius, c=rgba, linewidths=0)
@@ -801,8 +783,6 @@ def get_windowed_corr(data, window=50, do_parallel=True):
     return wc, w_ind
 
 
-
-
 def plot_average_visual_response(trial_calcium, grating_onsets,
                                  chosen=None, scale=2.5, dt=1 / 34, ax=None):
     """
@@ -844,7 +824,7 @@ def plot_average_visual_response(trial_calcium, grating_onsets,
     for idx in range(len(dirs)):
         plt.text(time[grating_onsets[idx] - grating_onsets[0]] + text_offset,
                  scale * len(chosen),
-                 str(dirs[idx]) + '$^\circ$', size=15)
+                 str(dirs[idx]) + '$^\circ$', size=15)  # noqa
 
     # Clean up plot
     ax.set_yticklabels([])
@@ -1380,7 +1360,7 @@ def plot_average_by_region(
     :param event_frames: (optional). List of frames at which to plot
                          a vertical line.
     :param ordering: 'peak' orders the averaged traces by their peak time.
-                     or, provide an np.array of the ordering to use 
+                     or, provide an np.array of the ordering to use
                      (i.e. to use
                      an ordering computed somewhere else.)
     :param left_labels: boolean. Display labels of the regions.
@@ -1561,6 +1541,7 @@ def plot_raster_by_region(cells_in_region,
             if frame > startframe and frame < startframe + nframes:
                 plt.axvline(frame * dt, color='c')
 
+
 def get_lick_onsets(lick_rates):
     """
     Get a list of lick onset frames for each trial.
@@ -1579,6 +1560,7 @@ def get_lick_onsets(lick_rates):
             onsets.append(np.nan)
 
     return np.array(onsets)
+
 
 def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
                                       trial_colors, event_frames,
@@ -1643,7 +1625,6 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
         if use_trials is not None:
             trials = np.logical_and(trials, use_trials)
 
-
         traces = C_cell[:, np.where(trials[:-1])[0]]
         trial_means = np.mean(traces, axis=1)
         trial_sems = scipy.stats.sem(traces, axis=1)
@@ -1654,9 +1635,10 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
         # print([T[0] * dt, T[-1] * dt, 0, traces.shape[0]])
 
         if not do_merge_go_means:
-            im = plt.imshow(traces.T, aspect='auto',
-                            extent=[T[0] - T[odor_onset], T[-1] - T[odor_onset],
-                                    0, traces.shape[1]], cmap='gray_r')
+            im = plt.imshow(
+                traces.T, aspect='auto',
+                extent=[T[0] - T[odor_onset], T[-1] - T[odor_onset],
+                        0, traces.shape[1]], cmap='gray_r')
             plt.axvline(0, color='m', linestyle='--', linewidth=0.5)
             plt.axvline(1.5, color='m', linestyle='--', linewidth=0.5)
             if xlims is None:
@@ -1666,7 +1648,7 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
 
         if do_merge_go_means:
             im = plt.imshow(traces.T, aspect='auto',
-                            extent=[T[0]-T[odor_onset],T[-1]-T[odor_onset],
+                            extent=[T[0]-T[odor_onset], T[-1]-T[odor_onset],
                                     0, traces.shape[1]], cmap='gray_r')
             plt.axvline(0, color='m', linestyle='--', linewidth=0.5)
             # plt.axvline(1.5, color='k')
@@ -1681,11 +1663,10 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
 
         if lick_onsets is not None:
             plt.plot(lick_onsets[trials]*dt-T[odor_onset],
-                     np.arange(len(lick_onsets[trials]))+0.5, 'ro', markersize=0.5, markeredgewidth=0)
-
+                     np.arange(len(lick_onsets[trials]))+0.5,
+                     'ro', markersize=0.5, markeredgewidth=0)
 
         plt.clim(clim)
-        #         plt.colorbar()
         plt.title(trial_names[ind], fontsize=8, loc='right', y=0.8)
         plt.gca().axes.xaxis.set_ticks([])
         plt.gca().axes.xaxis.set_ticklabels([])
@@ -1701,27 +1682,19 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
                 plt.fill_between(T-T[odor_onset], trial_means - trial_sems,
                                  trial_means + trial_sems,
                                  facecolor=trial_colors[ind], alpha=0.3)
-            # else:
-            #     plt.plot(T-T[odor_onset], traces, color=trial_colors[ind], linewidth=0.5,
-            #              alpha=0.1)
-            # spike_rate = trial_means / (dt)  # Divide by bin size to get a rate in Hz
             spike_rate = trial_means  # Divide by bin size to get a rate in Hz
 
-            plt.plot(T-T[odor_onset], spike_rate, color=trial_colors[ind], linewidth=0.5,
+            plt.plot(T-T[odor_onset], spike_rate,
+                     color=trial_colors[ind], linewidth=0.5,
                      label=trial_names[ind])
             plt.axvline(0, color='m', linestyle='--', linewidth=0.5)
             plt.axvline(1.5, color='m', linestyle='--', linewidth=0.5)
-            # plt.axvline(event_frames[0] * dt, color='m', linestyle='--', linewidth=0.5)
-            # plt.axvline(event_frames[1] * dt, color='m', linestyle='--', linewidth=0.5)
-            #         plt.ylabel('Fluorescence')
             plt.ylabel('Spike \n rate [Hz]')
             if xlims is None:
                 plt.xlim([0, 6])
             else:
                 plt.xlim(xlims)
             plt.xlabel('Time (s)')
-            # plt.gca().axes.xaxis.set_ticks(
-            #     [event_frames[0] * dt, event_frames[0] * dt + 2])
             plt.gca().axes.xaxis.set_ticks(
                 [0, 2])
             plt.gca().axes.xaxis.set_ticklabels([0, 2])
@@ -1732,16 +1705,13 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
             (trial_sets[0], trial_sets[1], trial_sets[2]))
         nogo_trials = trial_sets[-1]
 
-        go_traces = np.mean(C_cell[:,go_trials], axis=1)
-        nogo_traces = np.mean(C_cell[:,nogo_trials], axis=1)
+        go_traces = np.mean(C_cell[:, go_trials], axis=1)
+        nogo_traces = np.mean(C_cell[:, nogo_trials], axis=1)
 
-        # plt.plot(T-T[odor_onset], go_traces/dt, color='k', linewidth=0.5)  # Divide by bin size to get a rate in Hz
-        # plt.plot(T-T[odor_onset], nogo_traces/dt, color='g', linewidth=0.5)  # Divide by bin size to get a rate in Hz
         plt.plot(T-T[odor_onset], go_traces, color='k', linewidth=0.5)
         plt.plot(T-T[odor_onset], nogo_traces, color='g', linewidth=0.5)
 
         plt.axvline(0, color='m', linestyle='--', linewidth=0.5)
-        # plt.axvline(1.5, color='m')
         if xlims is None:
             plt.xlim([T[0]-T[odor_onset], T[-1]-T[odor_onset]])
         else:
@@ -1752,7 +1722,6 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
         plt.yticks(ylims_avg)
     plt.gca().tick_params(length=1)
 
-
     fig.subplots_adjust(hspace=0.55, wspace=-.2,
                         bottom=0.1, top=1, right=1,
                         left=0.2)  # Control padding around subplots
@@ -1762,7 +1731,8 @@ def plot_formatted_cell_across_trials(cell_id, C, T, trial_sets, trial_names,
         plt.subplot(gs[0])
         plt.axis('off')
         a = plt.axes([.235, .76, .3, .3], facecolor='y')
-        centroids_on_atlas(np.array([1]), np.array([cell_id]), centroids, atlas_tform)
+        centroids_on_atlas(
+            np.array([1]), np.array([cell_id]), centroids, atlas_tform)
         plt.gca().axes.xaxis.set_ticklabels([])
         plt.gca().axes.yaxis.set_ticklabels([])
         plt.gca().axes.xaxis.set_ticks([])
@@ -3058,7 +3028,7 @@ class GratingStimulus():
                 if not fixed_size or ct == 0:
                     plt.text(jdx - .25,
                              np.max(strength) + .25 * np.max(strength),
-                             str(dir) + '$^\circ$', size=10)
+                             str(dir) + '$^\circ$', size=10)  # noqa
                 if not fixed_size:
                     plt.text(-1, 0.25 * np.max(strength),
                              'cell\n' + str(idx), size=15)
@@ -3101,7 +3071,7 @@ class GratingStimulus():
                 plt.polar([0, theta], [0, r * plt.ylim()[1]], 'r')
                 ax.yaxis.set_ticklabels([])
                 plt.title(str(idx) + ' ' + str(np.around(np.rad2deg(theta))) +
-                          '$^\circ$ \n' +
+                          '$^\circ$ \n' +  # noqa
                           ' osi=' + str(osi) +
                           ' dsi=' + str(dsi) + '\n\n', loc='left')
 
@@ -3121,7 +3091,8 @@ class GratingStimulus():
 
         for idx, dir in enumerate(self.dirs):
             tc = 'k' if idx < 4 else 'w'
-            plt.text(idx, 0, '$' + str(dir) + '^\circ$', fontsize=10, color=tc,
+            plt.text(idx, 0,
+                    '$' + str(dir) + '^\circ$', fontsize=10, color=tc,  # noqa
                      horizontalalignment='center', verticalalignment='center')
 
         # Get colors to plot
@@ -3129,7 +3100,7 @@ class GratingStimulus():
                   for cc in range(len(chosen))]
         color_list = np.array([np.concatenate([colors[tt],
                               [r_[tt]]]) for tt in tuning])
-        
+
         # Set alpha to opaque
         color_list[:, 3] = 1
 
