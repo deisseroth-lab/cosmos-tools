@@ -8,6 +8,8 @@ It is recommended that you use an [Anaconda](https://www.anaconda.com/distributi
 `git clone https://github.com/izkula/cosmos-tools.git`
 
 ###### Install the environment
+Navigate to the `cosmos-tools` folder created by git and then run:
+
 `conda env create --file cosmos3requirements.yml -n cosmos3 python=3.5`
 
 ###### Activate the new environment
