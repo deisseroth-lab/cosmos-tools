@@ -1,26 +1,25 @@
 ## Distribution
 Use anaconda distribution for setting up python environments.
-continuum.io/downloads
+https://www.anaconda.com/distribution/
 
 ## Installation
-Two environments are necessary (one is python2 and one is python3), 
-due to a quirk in loading certain types of tif stacks in 
-dual_lenslet_crop.py (which is the first stage of processing raw image data), 
-for which python2 is necessary. Everything else uses python3.
 
 > conda env create --file cosmos3requirements.yml -n cosmos3 python=3.5
 > source activate cosmos3 
 > python setup.py develop
+> conda install -c conda-forge ipywidgets
 
 (This installs and passes tests on Mac OSX 10.15.3 and Ubuntu 18.04.1)
 
 For windows machines, use cosmos3requirement_windows.yml.
 (This has been tested on ....TODO)
 
-Then do:
 
-> conda env create --file cosmos2requirements.yml -n cosmos2 python=2.7
-> source activate cosmos2 
+
+Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with
+
+> conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7
+> source activate cosmos2
 > python setup.py develop
 
 (This installs on Mac OSX 10.15.3)

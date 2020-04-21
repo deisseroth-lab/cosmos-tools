@@ -1,23 +1,36 @@
 # COSMOS
+Code to extract neuronal traces from a multi-focal microscope (COSMOS: Cortical Observation by Synchronous Multifocal Optical Sampling), and then to analyze these traces.
 
-Herein lies code to extract neural traces from a multi-focal microscope, and then to analyze these traces.
+## Installation instructions
+It is recommended that you use an [Anaconda](https://www.anaconda.com/distribution/)  environment for running this package. The following command line instructions assume Anaconda has been installed.
 
-## Setting up environment 
-Two environments are necessary (one is python2 and one is python3), due to a quirk in loading certain types of tif stacks in dual_lenslet_crop.py, for which python2 is necessary. Everything else can safely use python3.
+###### Download the repository 
+`git clone https://github.com/izkula/cosmos-tools.git`
+
+###### Install the environment
+Navigate to the `cosmos-tools` folder created by git and then run:
 
 `conda env create --file cosmos3requirements.yml -n cosmostools3`
 
-###### Then do
+
+###### Activate the new environment
 `source activate cosmostools3`
 
+
+###### Setup the cosmos package
 `python setup.py develop`
 
+###### Setup ipywidgets package for jupyter notebook
 `conda install -c conda-forge ipywidgets`
 
-(For some reason, ipywidgets, which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created. See See: https://ipywidgets.readthedocs.io/en/stable/user_install.html for more information about ipywidgets).
+(For some reason, [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/user_install.html), which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created. There have also been some issues when removing conda environments after ipywidgets has been installed, but remaking the environments appears to eventually work.)
 
-Additionally, the CNMF-E implementation (https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and potentially will be ready by the time you are reading this). Thus, a MATLAB license is required for a subset of this codebase (specifically, it is only necessary for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
-You can download the most up-to-date version of CNMF_E by changing directories to the desired install location, and then running
+###### Setup CNMF-E package for neural source extraction
+
+The [CNMF-E implementation](https://github.com/zhoupc/CNMF_E) we use is written in MATLAB (a python implementation is in progress, and may be ready by the time you are reading this). 
+This package uses the version of CNMF-E from June 27, 2018 (commit # ddb865832f52c81725859df8b5e032b4acb421e9).
+A MATLAB license is thus required for a subset of this codebase (specifically, only for extracting sources from raw imaging data), all subsequent steps do not require MATLAB.
+You can download the most up-to-date version of CNMF_E to your desired install location with
 
 `git clone https://github.com/zhoupc/CNMF_E.git`
 
@@ -25,17 +38,7 @@ Then, open MATLAB, change to the installation directory, and run
 
 `cnmfe_setup`
 
-
-
-###### Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with 
-`conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7`
-
-`source activate cosmos2`
-
-`python setup.py develop`
-
-
-## -Testing the code. 
+## Testing the code
 From the top directory (in environment cosmos3) run:
 
 `pytest`
@@ -48,7 +51,17 @@ If using Mac OSX, then because of an issue with matplotlib you instead need to d
 then
 `pythonw -m pytest`
 
-## Useful scripts (Last updated 20191201.)
+## Additional installation notes
+
+###### Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with 
+`conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7`
+
+`source activate cosmos2`
+
+`python setup.py develop`
+
+
+## Useful scripts (last updated 20200415)
 
 ### Importing raw data from COSMOS microscope:
 
@@ -60,77 +73,64 @@ then
 
 
 
-### Importing intrinsic imaging movies for atlas alignment.
+### Importing intrinsic imaging movies for atlas alignment:
 
-1) See `ipynb/intrinsic_imaging_alignment.ipynb`
+1) See `ipynb/processing_notebooks/intrinsic_imaging_alignment.ipynb`
 
 2) After extracting phase map from step 1, you can manually overlay the phase map with the the image that contains vasculature. This alignment of PM/V1 boundary can then be used to precisely align already-imported COSMOS data, using `scripts/adjust_atlas.py`
 
 
 
-### Importing two-photon data (i.e. for comparing visual stimulus orientation selectivity)
+### Importing two-photon data (i.e. for comparing visual stimulus orientation selectivity):
 
-##### -Process two-photon data (i.e. visual stimulus).
-`batch_cnmf_2p.py`
+1) Process two-photon data (i.e. visual stimulus).
+`scripts/batch_cnmf_2p.py`
 
-##### -Analyzing orientation selective visual grating stimulation.
-`ipynb/COSMOS Visual Analysis.ipynb`, 
-`ipynb/COSMOS Visual Stimulation Figure.ipynb`
+2) Analyzing orientation selective visual grating stimulation.
+`ipynb/primary_notebooks/fig_visual_stimulation_two_photon.ipynb`, 
+`ipynb/primary_notebooks/fig_visual_stimulation_cosmos.ipynb`, 
 
-##### -Clean up extracted traces, align and merge traces from the different lenslets, and save out an .h5 file containing merged traces, and aligned atlas.
-`ipynb/trace_merge_script.ipynb`
+### Analyzing COSMOS traces from lick-to-target task and generating figures:
 
-##### -Analyze merged traces.
-`ipynb/trace_analyze_script_ik.ipynb`
+#### Analyze merged traces.
+`ipynb/primary_notebooks/trace_analyze_script_ik.ipynb`
 
-##### -Decode behavior from neural activity.
-`ipynb/classification_analysis.ipynb`
+#### Decode behavior from neural activity.
+`ipynb/primary_notebooks/classification_analysis.ipynb`
 
-##### - Clustering synchronously recorded sources
-`ipynb/cluster_analysis.ipynb`
+#### Assign neural sources to task-related classes
+`ipynb/primary_notebooks/task_class_assignment.ipynb`
+`ipynb/primary_notebooks/fig_cluster_summary_with_mr2`
 
-##### -Generalized linear model for predicting neural activity from behavior.
-`ipynb/glm_development.ipynb`
-
-##### Analyze behavior videos
-`ipynb/extract_video_regressors.ipynb`
-
-### Figure notebooks
 #### Trace summary figure
-`ipynb/fig_trace_summary.ipynb`
+`ipynb/primary_notebooks/fig_trace_summary.ipynb`
 
 #### Optics summary
-`ipynb/fig_optics.ipynb`
+`ipynb/primary_notebooks/fig_optics.ipynb`
 
 #### Characterization of COSMOS vs. macroscope
-`ipynb/fig_macroscope_comparison.ipynb`
+`ipynb/primary_notebooks/fig_macroscope_comparison.ipynb`
 
 #### Lick decoding
-`ipynb/fig_classificiation_summary.ipynb`
+`ipynb/primary_notebooks/fig_classification_summary.ipynb`
 
-#### VGAT inhibition
-`ipynb/vgat_inhibition_analysis.ipynb`
+#### VGAT optogenetic inhibition
+`ipynb/primary_notebooks/vgat_inhibition_analysis.ipynb`
 
-#### Orientation selectivity
-`ipynb/fig_visual_stimulation_cosmos.ipynb`
-`ipynb/fig_visual_stimulation_two_photon.ipynb`
-
-#### Task-classification
-`ipynb/task_class_assignment` (for mean-correlation based)
-`ipynb/glm_class_assignment` (for glm based)
-`ipynb/fig_cluster_summary_with_mr2` (for mean-correlation based)
-`ipynb/fig_cluster_summary_with_glm` (for glm based)
-
-#### Local clustering
-`ipynb/fig_cluster_summary_SINGLE_TRIAL` (for single-trial vs trial-averaged clustering)
+#### Unaveraged vs. trial-averaged correlation 
+`ipynb/fig_cluster_summary_SINGLE_TRIAL` 
 
 #### Optics simulations
-`matlab/scripts/trace_analysis_spont.m` (for estimating background and signal photons)
+`matlab/scripts/trace_analysis_spont.m` (for estimating background and signal photons) 
 `matlab/SNR/dof_snr_simulations.m` (for plotting simulations)
 
+## Reference:
+**Please cite this paper when you use COSMOS in your research. Thanks!**
 
+## License
+Copyright 2020 Isaac Kauvar and Tim Machado
 
 
 ## General notes:
-To run ipynb, on a remote computer, go to top directory and run:
-ipython notebook --port=5558 --ip=* --no-browser
+To run jupyter notebooks, on a remote computer, go to top directory and run:
+jupyter notebook --port=5558 --ip=* --no-browser
