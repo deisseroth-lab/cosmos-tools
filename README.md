@@ -5,10 +5,10 @@ Herein lies code to extract neural traces from a multi-focal microscope, and the
 ## Setting up environment 
 Two environments are necessary (one is python2 and one is python3), due to a quirk in loading certain types of tif stacks in dual_lenslet_crop.py, for which python2 is necessary. Everything else can safely use python3.
 
-`conda env create --file cosmos3requirements.yml -n cosmos3 python=3.5`
+`conda env create --file cosmos3requirements.yml -n cosmostools3`
 
 ###### Then do
-`source activate cosmos3`
+`source activate cosmostools3`
 
 `python setup.py develop`
 
