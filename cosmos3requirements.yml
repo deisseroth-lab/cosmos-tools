@@ -122,7 +122,7 @@ dependencies:
   - jupyter-console==5.1.0
   - jupyter-core==4.4.0
   - jupyterlab-launcher==0.10.5
-  - keras==2.0.8
+  - keras==2.2.2
   - llvmlite==0.20.0
   - matplotlib==2.0.2
   - networkx==1.11
