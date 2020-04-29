@@ -4294,7 +4294,7 @@ def save_clustering(filename,
         
         
 def plot_task_classification_for_one_dataset(dataset_id, CT_ind, 
-                                             allCT, sets, 
+                                             allCT, 
                                              clustering_dir, 
                                              cluster_figs_dir):
     """
@@ -4519,5 +4519,8 @@ def plot_task_classification_for_one_dataset(dataset_id, CT_ind,
     savename = 'id'+str(dataset_id)+'_'+protocol+'_single_trial_means_'+str(source_id)+'.pdf'
     plt.savefig(os.path.join(clust_fig_dir, savename), 
                 transparent=True, rasterized=True, dpi=600) 
+    
+    
+    return [all_nmf, rates] 
 
     
