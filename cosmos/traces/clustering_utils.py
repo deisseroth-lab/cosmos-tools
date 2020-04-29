@@ -4290,3 +4290,234 @@ def save_clustering(filename,
 
     with open(filename, 'wb') as f:
         pickle.dump(nmf_results, f)
+        
+        
+        
+def plot_task_classification_for_one_dataset(dataset_id, CT_ind, 
+                                             allCT, sets, 
+                                             clustering_dir, 
+                                             cluster_figs_dir):
+    """
+    Make all single dataset plots for figure 3 (task-classification). 
+    This was a bunch of cells in jupyter that are being factored
+    into a function so that can run across multiple datasets in
+    a loop.
+    """
+    do_plot_pre_lick_cells = False
+
+    
+    
+    n_components = 40
+    sets = [#{'method':'nmf', 'protocol':'4way', 'randseed':1, 'n_components':n_components, 'l1':0.0},
+            {'method':'nmf', 'protocol':'full', 'randseed':1, 'n_components':n_components, 'l1':0.0},
+            {'method':'classify', 'protocol':'mr2', 'randseed':'', 'n_components':'', 'l1':''},
+        ]
+    all_nmf = load_clustering_results(dataset_id, sets, clustering_dir, protocol_as_key=True)
+
+    # clust_fig_dir = os.path.join(cluster_figs_dir, 'avg_plots_{}'.format(n_components), str(dataset_id))
+    clust_fig_dir = os.path.join(cluster_figs_dir, str(dataset_id))
+
+    os.makedirs(clust_fig_dir, exist_ok=True)
+    print('Save to:')
+    print(clust_fig_dir)
+    
+    ### Load clustered data.
+    protocol = 'mr2' # '4way'
+
+    ### The below requires having loaded the CT datastructure.
+    fps = allCT[CT_ind].fps
+    if protocol == '4way':
+        rates = gaussian_filter1d(allCT[CT_ind].St, 1.5, axis=1, mode='constant')
+        event_frames = allCT[CT_ind].event_frames
+        data = concatenate_trial_type_avgs(all_nmf['4way']['trial_sets'], rates, 
+                                              do_plot=False)
+    elif protocol == '2way':
+        rates = gaussian_filter1d(allCT[CT_ind].St, 1.5, axis=1, mode='constant')
+        do_super_clust = True
+        if not do_load:
+            data = concatenate_trial_type_avgs(all_nmf['2way']['trial_sets'], rates, 
+                                                  do_plot=True)
+    elif protocol == 'oeg2way':
+        pass
+
+    elif protocol == 'full':
+        rates = gaussian_filter1d(allCT[CT_ind].St, 1.5, axis=1, mode='constant')
+        rates_flat = np.reshape(rates, (rates.shape[0], rates.shape[1]*rates.shape[2]), order='F')
+        data = rates_flat
+        do_super_clust = False
+
+    elif protocol == 'glm':
+        rates = gaussian_filter1d(allCT[CT_ind].St, 1.5, axis=1, mode='constant')
+        event_frames = allCT[CT_ind].event_frames
+        data = concatenate_trial_type_avgs(all_nmf['glm']['trial_sets'], rates, 
+                                              do_plot=False)
+
+    elif protocol == 'mr2':
+        rates = gaussian_filter1d(allCT[CT_ind].St, 1.5, axis=1, mode='constant')
+        event_frames = allCT[CT_ind].event_frames
+        data = concatenate_trial_type_avgs(all_nmf['mr2']['trial_sets'], rates, 
+                                              do_plot=False)
+        data_front = concatenate_trial_type_avgs(all_nmf['mr2']['trial_sets'], rates, 
+                                                    do_plot=False, get_first_half=True)
+        data_back = concatenate_trial_type_avgs(all_nmf['mr2']['trial_sets'], rates, 
+                                                    do_plot=False, get_second_half=True)
+    print('Done computing rates.')
+    
+    if 'mr2' in all_nmf.keys():
+        tm = utils.get_task_modulated(rates, all_nmf['mr2']['trial_sets']);
+    
+    
+    ### Plot sources that are selective between odor onset and lick onset
+    if do_plot_pre_lick_cells:
+        task_classes = all_nmf['mr2']['ordered_super_clustering']
+        trial_sets = all_nmf['mr2']['trial_sets']
+
+
+        pre_lick_dir = os.path.join(cluster_figs_dir, 
+                                     'pre_lick_sources', str(dataset_id))
+        os.makedirs(pre_lick_dir, exist_ok=True)
+
+        odor_onset = 65
+
+        earliest_frame = odor_onset
+        latest_frame = 74
+        which_classes = [1, 2, 3]
+        which_sets = [0, 1, 2]
+        lick_rates = allCT[CT_ind].bd.spout_lick_rates
+        spike_rates = allCT[CT_ind].St
+        plot_pre_lick_sources(lick_rates, spike_rates,
+                              task_classes, trial_sets, 
+                              which_classes, which_sets,
+                              earliest_frame, latest_frame,
+                              fps, save_dir=pre_lick_dir)
+
+    ### Generate the super-clustering ordered average trace figure.
+    if 'mr2' in all_nmf.keys():
+        source_coloring = assign_colors_to_sources(all_nmf['mr2']['ordered_clustering'], 
+                                                      all_nmf['mr2']['ordered_super_clustering'],
+                                                      cmap='jet',
+                                                      same_within_super_cluster=True,
+                                                      specify_discrete_colors=True)
+
+        trial_set_inds = all_nmf['mr2']['trial_set_inds']
+        trial_names = all_nmf['mr2']['trial_names']
+        label_positions = trial_set_inds + np.diff(trial_set_inds)[0]/2 ## To label each trial type.
+        cm = 'plasma'
+        plot_clustered_sources(all_nmf['mr2']['ordered_clustering'], 
+                                  all_nmf['mr2']['ordered_super_clustering'], 
+                                  source_means=data_back,  ### Set to data_back for cross-validated plotting. 
+                                                           ### Or set to data_front to use the same as ordering. 
+                                  source_coloring=source_coloring,
+                                  cmap=cm, 
+                                  clim=[-2, 4],
+                                  vertical_lines={'k':trial_set_inds, 
+                                                  'w': np.hstack((trial_set_inds+64, 
+                                                                  trial_set_inds+108))
+                                                 }, 
+                                  title_str='dataset {}'.format(dataset_id),
+                                  labels={'labels':trial_names, 
+                                          'positions':label_positions},
+                                  time_labels={'labels':['0']*len(trial_names) + 
+                                                        ['2']*len(trial_names),
+                                               'positions': np.hstack(
+                                                   (trial_set_inds+event_frames[1],
+                                                    trial_set_inds+event_frames[1]+2*fps))},
+                                  exclude_super_clusters=[0],
+                                 )
+
+        savename = 'id'+str(dataset_id)+'_'+protocol+'_traces_'+cm
+        if not os.path.isdir(clust_fig_dir):
+            os.makedirs(clust_fig_dir)
+        print(clust_fig_dir)
+    #     plt.gcf().set_size_inches(w=2.5, h=4) # Control size of figure in inches
+        plt.savefig(os.path.join(clust_fig_dir, savename+'.pdf'), 
+                    transparent=True, rasterized=True, dpi=600) 
+        plt.savefig(os.path.join(clust_fig_dir, savename+'.png'), 
+                    transparent=True, rasterized=True, dpi=50) 
+    else:
+        print('Not plotting super-clusters.')
+        
+    ### Now plot the average traces of each super cluster.
+    if 'mr2' in all_nmf.keys():
+        plot_cluster_averages(data, 
+                                 all_nmf['mr2']['ordered_clustering'], 
+                                 all_nmf['mr2']['ordered_super_clustering'], 
+                                 trial_set_inds, by_trial_type=True,
+                                 event_frames=[event_frames[1],
+                                               event_frames[1]+2*fps],
+                                 event_labels=[0, 2],
+                                 time_labels={'labels':['0']*len(trial_names) + ['2']*len(trial_names),
+                                               'positions': np.hstack((trial_set_inds+event_frames[1],
+                                                                      trial_set_inds+event_frames[1]+2*fps))},
+                                 vertical_lines={'k':trial_set_inds, 
+                                                 'g': np.hstack((trial_set_inds+64, 
+                                                                  trial_set_inds+108))
+                                                 },
+                                )
+
+        savename = 'id'+str(dataset_id)+'_'+protocol+'_cluster_averages.pdf'
+        plt.gcf().set_size_inches(w=2.819, h=0.4) # Control size of figure in inches
+        plt.savefig(os.path.join(clust_fig_dir, savename), 
+                    transparent=True, rasterized=True, dpi=600) 
+        
+    ### You can try only include the trial-modulated sources. 
+    do_include_only_task_modulated = False
+    if do_include_only_task_modulated:
+        source_coloring[~tm, :] = np.array([0.8, 0.8, 0.8, 0.8])
+        
+    ### For each super cluster, plot the location of the included cells, over grey background dots,
+    ### with the corresponding color from the above plot. 
+    if 'mr2' in all_nmf.keys():
+        subplot_titles = None
+    #     subplot_titles= all_nmf['4way']['super_clust_info']['titles']
+        plot_cluster_spatial_maps(source_coloring,
+                                     all_nmf['mr2']['ordered_super_clustering'],
+                                     all_nmf['mr2']['centroid_atlas_coords'],
+                                     radius=3, #0.5, 
+                                     do_overlay=False,
+                                     background_color=np.array([0.8, 0.8, 0.8, 0.8]),
+                                     subplot_titles= subplot_titles,
+                                     specific_clusters=None)
+
+        savename = 'id'+str(dataset_id)+'_'+protocol+'_spatial_maps.pdf'
+        if subplot_titles is None:
+            plt.gcf().set_size_inches(w=3.7, h=2) # Control size of figure in inches
+        else:
+            plt.gcf().set_size_inches(w=2.5, h=2) # Control size of figure in inches
+
+        plt.savefig(os.path.join(clust_fig_dir, savename), 
+                    transparent=True, rasterized=True, dpi=600) 
+        
+        
+    ### Plot single trials for the schematic, with the trial type on the right side, and also the mean traces
+    plt.figure(figsize=(15, 15))
+    if dataset_id == 7:
+        source_id = 1031
+    #     source_id = 5
+    else: 
+        source_id = 0 # until further notice...
+
+    trial_types = np.copy(allCT[CT_ind].bd.spout_positions)
+    trial_types[np.where(allCT[CT_ind].bd.trial_types==4)[0]] = 0
+
+    event_frame = allCT[CT_ind].event_frames[1]
+    plot_single_trials_with_trial_type(source_id, rates, trial_types,
+                                         start_f=50, end_f=150, 
+                                          event_frame=event_frame, fps=fps,
+                                         cmap='gray_r')
+
+    plt.gcf().set_size_inches(w=1.5, h=3) # Control size of figure in inches
+    savename = 'id'+str(dataset_id)+'_'+protocol+'_single_trial_'+str(source_id)+'.pdf'
+    plt.savefig(os.path.join(clust_fig_dir, savename), 
+                transparent=True, rasterized=True, dpi=600) 
+
+    ### Now plot mean traces
+    plt.figure()
+    plot_trial_type_mean_traces(source_id, rates, trial_types, event_frame, fps)
+
+    plt.gcf().set_size_inches(w=1.5, h=3) # Control size of figure in inches
+    savename = 'id'+str(dataset_id)+'_'+protocol+'_single_trial_means_'+str(source_id)+'.pdf'
+    plt.savefig(os.path.join(clust_fig_dir, savename), 
+                transparent=True, rasterized=True, dpi=600) 
+
+    
