@@ -228,8 +228,12 @@ class CellPlotter:
             ff_h = np.squeeze(ff[:, :, hn])
             print(ff_h.shape)
             fs_h = ff_h.shape
-            flat_footprints = np.reshape(
-                ff_h, (fs_h[0] * fs_h[1], fs_h[2]), order='F')
+            if len(fs_h) == 3:
+                flat_footprints = np.reshape(
+                    ff_h, (fs_h[0] * fs_h[1], fs_h[2]), order='F')
+            else:
+                flat_footprints = np.reshape(
+                    ff_h, (fs_h[0] * fs_h[1], 1), order='F') 
         else:
             flat_footprints = np.reshape(ff, (fs[0] * fs[1], fs[2]), order='F')
 
