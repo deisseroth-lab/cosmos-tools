@@ -20,7 +20,7 @@ Navigate to the `cosmos-tools` folder created by git and then run:
 ###### Setup the cosmos package
 `python setup.py develop`
 
-###### Setup ipywidgets package for jupyter notebook
+###### Optionally setup ipywidgets package for jupyter notebook (only required for trace_merge_script.ipynb, and sometimes causes weird problems)
 `conda install -c conda-forge ipywidgets`
 
 (For some reason, [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/user_install.html), which is necessary only for trace_merge_script.ipynb, appears to be required to be installed separately, after the environment has already been created. There have also been some issues when removing conda environments after ipywidgets has been installed, but remaking the environments appears to eventually work.)
