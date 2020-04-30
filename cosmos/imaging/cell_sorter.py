@@ -28,11 +28,14 @@ class CellSorter():
     :param save_path: Path for saving out the array of which cells to keep
     :param keep_cells: An array, passed in by reference, which contains the
                        labels (-1 = not yet labeled, 1 = keep, 0 = delete)
-                       for each cell (this can include the auto-processed labels).
+                       for each cell
+                       (this can include the auto-processed labels).
                        This array will be modified in place.
     :param show_only_kept_cells: (optional). bool.
-                                 only display cells where the keep_cells array is 1.
-                                 (this enables you to go through and double check those).
+                                 only display cells
+                                 where the keep_cells array is 1.
+                                 (this enables you to go through
+                                 and double check those).
     """
     def __init__(self, footprints, traces,
                  traces_raw, base_im,
@@ -168,8 +171,7 @@ class CellSorter():
                                     step=1,
                                     description='Frame',
                                     disabled=False,
-                                    continuous_update=True,  # True for smoother transition
-                                                             # (but potentially laggy).
+                                    continuous_update=True,
                                     orientation='horizontal',
                                     readout=True,
                                     readout_format='d')
@@ -184,12 +186,6 @@ class CellSorter():
 
         # Link up widget callbacks.
         self.w1.on_submit(self._handle_submit)
-        # self.w1.observe(self._handle_submit, 'value')  # w1.observe does not enable
-                                                         # accepting a source by
-                                                         # just hitting enter in the gui.
-                                                         # So, until on_submit is
-                                                         # fully deprecated,
-                                                         # just use on_submit.
         self.w2.observe(self._handle_slider, names='value')
 
     def _handle_submit(self, sender):

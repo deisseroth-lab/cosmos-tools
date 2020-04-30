@@ -160,7 +160,7 @@ class ClassifierData:
             for cell in range(ncells):
                 # Only process sources with some signal
                 if np.max(traces[cell, time, :] > signal_threshold):
-                            f, p = stats.kruskal(
+                    f, p = stats.kruskal(
                                 traces[cell, time, np.where(spout == 0)[0]],
                                 traces[cell, time, np.where(spout == 1)[0]],
                                 traces[cell, time, np.where(spout == 2)[0]])
@@ -1689,7 +1689,9 @@ def compare_initial_conditions(datasets, cluster_time, traj_time,
                                 o_idx = np.argmin(other_dist)
                             elif (mode == 'Old') or (mode == 'Third'):
                                 # Or get the distance to the previous spout
-                                o_idx = np.where((np.array(other_curr_target) - np.array(other_old_target)) == 0)[0][0]
+                                curr = np.array(other_curr_target)
+                                old = np.array(other_old_target)
+                                o_idx = np.where((curr - old) == 0)[0][0]
                                 if mode == 'Third':
                                     o_idx = not o_idx
                             else:
@@ -1817,22 +1819,22 @@ def quantify_variance_explained(datasets, min_neurons,
     pls = []
     pca = []
     for dataset in np.unique(pls_var['Dataset']):
-            for area in np.unique(pls_var['Area']):
-                pt = pls_var.loc[(pls_var['Dataset'] == dataset) &
-                                 (pls_var['Area'] == area)][
-                                     'Total variance explained']
-                if len(pt) > 1:
-                    raise ValueError('Error parsing point')
-                if len(pt) == 0:
-                    print('Skipping dataset', dataset, area)
-                    continue
-                pls.append(np.array(pt)[0])
-                pt = pca_var.loc[(pca_var['Dataset'] == dataset) &
-                                 (pca_var['Area'] == area)][
-                                     'Total variance explained']
-                if len(pt) > 1:
-                    raise ValueError('Error parsing point')
-                pca.append(np.array(pt)[0])
+        for area in np.unique(pls_var['Area']):
+            pt = pls_var.loc[(pls_var['Dataset'] == dataset) &
+                             (pls_var['Area'] == area)][
+                              'Total variance explained']
+            if len(pt) > 1:
+                raise ValueError('Error parsing point')
+            if len(pt) == 0:
+                print('Skipping dataset', dataset, area)
+                continue
+            pls.append(np.array(pt)[0])
+            pt = pca_var.loc[(pca_var['Dataset'] == dataset) &
+                             (pca_var['Area'] == area)][
+                              'Total variance explained']
+            if len(pt) > 1:
+                raise ValueError('Error parsing point')
+            pca.append(np.array(pt)[0])
     p = stats.ttest_rel(pls, pca).pvalue
     print('paired t-test pls vs pca', ' p =', p)
 

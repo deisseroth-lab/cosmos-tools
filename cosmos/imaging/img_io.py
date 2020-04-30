@@ -79,7 +79,7 @@ def load_raw_data(input_folder, sub_seq=None, scale=1, print_freq=1000):
                     substack = tif.asarray(key=sub_seq)
                     print(substack.shape)
                 if ind == 0:
-                    ### The entire tif stack is actually just loaded from the first filename. Should this not be a loop?
+                    # The entire tif stack is loaded from the first filename.
                     stack = substack
                     break
                 else:
@@ -187,11 +187,11 @@ def save_video(vid, save_path, fps=30, clim=None,
         if clim is None:
             clim = [np.min(vid), np.max(vid)]
 
-        l = plt.imshow(vid[:, :, 0], clim=clim, cmap=cmap)
+        plotted = plt.imshow(vid[:, :, 0], clim=clim, cmap=cmap)
         nframes = vid.shape[2]
         with writer.saving(fig, save_path, nframes):
             for i in range(nframes):
-                l.set_data(vid[:, :, i])
+                plotted.set_data(vid[:, :, i])
                 writer.grab_frame()
 
 

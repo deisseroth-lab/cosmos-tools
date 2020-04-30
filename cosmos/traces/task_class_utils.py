@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def cross_val_mean_ev(traces, nfolds=5):
     """
     For each fold, compute the mean across
@@ -30,13 +31,13 @@ def cross_val_mean_ev(traces, nfolds=5):
         train_trials = rolled_inds[ntest:]
 
         print(test_trials)
-        #         print(train_trials)
 
-        mean_train = np.mean(shuff_traces[:, :, train_trials], axis=2)[:, :,
-                     np.newaxis]
+        mean_train = np.mean(
+            shuff_traces[:, :, train_trials], axis=2)[:, :, np.newaxis]
         ytrue = shuff_traces[:, :, test_trials]
         ypred = np.tile(mean_train, (1, 1, len(test_trials)))
 
+        # See biorxiv.org/content/biorxiv/early/2018/04/22/306019.full.pdf
         for source in range(nsources):
             ntest = len(test_trials)
             trials_ev = np.zeros((ntest, 1))
@@ -49,11 +50,10 @@ def cross_val_mean_ev(traces, nfolds=5):
                     rsquared = 0
                 else:
                     rsquared = np.corrcoef(trial_ypred, trial_ytrue)[0, 1] ** 2
-                    #                     r, p = scipy.stats.pearsonr(trial_ypred, trial_ytrue)
+                    # r, p = scipy.stats.pearsonr(trial_ypred, trial_ytrue)
                     #                     rsquared = r**2
                     ev = 1 - np.var(trial_ytrue - trial_ypred) / np.var(
                         trial_ytrue)
-                    # See https://www.biorxiv.org/content/biorxiv/early/2018/04/22/306019.full.pdf
 
                 trials_ev[trial] = ev
                 trials_rsquared[trial] = rsquared
@@ -62,6 +62,7 @@ def cross_val_mean_ev(traces, nfolds=5):
             rsquared_folds[source, fold] = np.mean(trials_rsquared)
 
     return ev_folds, rsquared_folds
+
 
 def get_shuffle_for_parallel(input):
     """Wrapper for get_shuffle so that there is
@@ -96,13 +97,19 @@ def get_shuffle(rates, rseed, ntrials_per_shuffle=52):
     np.random.seed(rseed)
     ntrials_total = rates.shape[2]
 
-    trial_set = np.random.permutation(np.arange(ntrials_total))[:ntrials_per_shuffle]
-    which_frames = np.arange(65, 200) # Only include odor period
+    trial_set = np.random.permutation(
+        np.arange(ntrials_total))[:ntrials_per_shuffle]
+
+    # Only include odor period
+    which_frames = np.arange(65, 200)
 
     traces = np.zeros((rates.shape[0], len(which_frames), len(trial_set)))
+
     for trial in range(traces.shape[2]):
-        shift = np.random.randint(0, len(which_frames)/2) ### Randomly roll each trial by at least two time frames.
-        traces[:, :, trial] = np.roll(rates[:, which_frames, :][:, :, trial_set[trial]], shift, axis=1)
+        # Randomly roll each trial by at least two time frames.
+        shift = np.random.randint(0, len(which_frames)/2)
+        traces[:, :, trial] = np.roll(
+            rates[:, which_frames, :][:, :, trial_set[trial]], shift, axis=1)
 
     ev_boot_shuff, rsquared_boot_shuff = cross_val_mean_ev(traces, nfolds=5)
     return [ev_boot_shuff, rsquared_boot_shuff]
