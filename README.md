@@ -92,8 +92,8 @@ then
 
 ### Analyzing COSMOS traces from lick-to-target task and generating figures:
 
-#### Analyze merged traces.
-`ipynb/primary_notebooks/trace_analyze_script_ik.ipynb`
+#### DEMO analysis of processed traces. 
+`ipynb/primary_notebooks/DEMO_trace_analyze_script.ipynb`
 
 #### Decode behavior from neural activity.
 `notebooks/primary_notebooks/classification_analysis.ipynb`
@@ -118,7 +118,7 @@ then
 `notebooks/primary_notebooks/vgat_inhibition_analysis.ipynb`
 
 #### Unaveraged vs. trial-averaged correlation 
-`notebooks/fig_cluster_summary_SINGLE_TRIAL` 
+`notebooks/primary_notebooks/fig_cluster_summary_SINGLE_TRIAL-11.13.19.ipynb` 
 
 #### Optics simulations
 `matlab/scripts/trace_analysis_spont.m` (for estimating background and signal photons) 
@@ -126,6 +126,7 @@ then
 
 ## Reference:
 **Please cite this paper when you use COSMOS in your research. Thanks!**
+Kauvar IV*, Machado TA*, et al. Cortical observation by synchronous multifocal optical sampling reveals widespread population encoding of actions. Neuron 2020.
 
 ## License
 Copyright 2020 Isaac Kauvar and Tim Machado
