@@ -4,12 +4,12 @@ https://www.anaconda.com/distribution/
 
 ## Installation
 
-> conda env create --file cosmos3requirements.yml -n cosmos3 python=3.5
-> source activate cosmos3 
+> conda env create --file cosmos3requirements.yml -n cosmostools3
+> source activate cosmostools3
 > python setup.py develop
 > conda install -c conda-forge ipywidgets
 
-(This installs and passes tests on Mac OSX 10.15.3 and Ubuntu 18.04.1)
+(This installs and passes tests on Mac OSX 10.15.3 and Ubuntu 18.04.1 with conda version 4.8.3)
 
 For windows machines, use cosmos3requirement_windows.yml.
 (This has been tested on ....TODO)

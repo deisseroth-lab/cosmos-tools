@@ -31,8 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Author: Anthony Di Franco (original Python and NumPy port)
 # License: BSD 3 clause
 
-
-
 from __future__ import division
 
 from math import sqrt
@@ -393,7 +391,7 @@ class ProjectedGradientNMF(BaseEstimator, TransformerMixin):
     def __init__(self, n_components=None, init=None, sparseness=None, beta=1,
                  eta=0.1, tol=1e-4, max_iter=200, nls_max_iter=2000,
                  random_state=None, W=None, H=None, fixed_W=False,
-                 fixed_H=False): #changes by Andreas Boye s122269
+                 fixed_H=False):  # changes by Andreas Boye s122269
         self.n_components = n_components
         self.init = init
         self.tol = tol
@@ -407,10 +405,10 @@ class ProjectedGradientNMF(BaseEstimator, TransformerMixin):
         self.max_iter = max_iter
         self.nls_max_iter = nls_max_iter
         self.random_state = random_state
-        self.W = W #changes by Andreas Boye s122269
-        self.H = H #changes by Andreas Boye s122269
-        self.fixed_W = fixed_W #changes by Andreas Boye s122269
-        self.fixed_H = fixed_H #changes by Andreas Boye s122269
+        self.W = W  # changes by Andreas Boye s122269
+        self.H = H  # changes by Andreas Boye s122269
+        self.fixed_W = fixed_W  # changes by Andreas Boye s122269
+        self.fixed_H = fixed_H  # changes by Andreas Boye s122269
 
     def _init(self, X):
         n_samples, n_features = X.shape
@@ -425,29 +423,29 @@ class ProjectedGradientNMF(BaseEstimator, TransformerMixin):
 
         if init == 'nndsvd':
             W, H = _initialize_nmf(X, self.n_components_)
-            if self.fixed_H: #changes by Andreas Boye s122269
-                H = self.H #changes by Andreas Boye s122269
-            if self.fixed_W: #changes by Andreas Boye s122269
-                W = self.W #changes by Andreas Boye s122269
+            if self.fixed_H:  # changes by Andreas Boye s122269
+                H = self.H  # changes by Andreas Boye s122269
+            if self.fixed_W:  # changes by Andreas Boye s122269
+                W = self.W  # changes by Andreas Boye s122269
         elif init == 'nndsvda':
             W, H = _initialize_nmf(X, self.n_components_, variant='a')
         elif init == 'nndsvdar':
             W, H = _initialize_nmf(X, self.n_components_, variant='ar')
         elif init == "random":
             rng = check_random_state(random_state)
-            if not self.fixed_W: #changes by Andreas Boye s122269
+            if not self.fixed_W:  # changes by Andreas Boye s122269
                 W = rng.randn(n_samples, self.n_components_)
             # we do not write np.abs(W, out=W) to stay compatible with
             # numpy 1.5 and earlier where the 'out' keyword is not
             # supported as a kwarg on ufuncs
                 np.abs(W, W)
-            else: #changes by Andreas Boye s122269
-                W = self.W #changes by Andreas Boye s122269
-            if not self.fixed_H: #changes by Andreas Boye s122269
+            else:  # changes by Andreas Boye s122269
+                W = self.W  # changes by Andreas Boye s122269
+            if not self.fixed_H:  # changes by Andreas Boye s122269
                 H = rng.randn(self.n_components_, n_features)
                 np.abs(H, H)
-            else: #changes by Andreas Boye s122269
-                H = self.H #changes by Andreas Boye s122269
+            else:  # changes by Andreas Boye s122269
+                H = self.H  # changes by Andreas Boye s122269
         else:
             raise ValueError(
                 'Invalid init parameter: got %r instead of one of %r' %
@@ -546,13 +544,13 @@ class ProjectedGradientNMF(BaseEstimator, TransformerMixin):
                 break
 
             # update W
-            if not self.fixed_W: #changes by Andreas Boye s122269
+            if not self.fixed_W:  # changes by Andreas Boye s122269
                 W, gradW, iterW = self._update_W(X, H, W, tolW)
                 if iterW == 1:
                     tolW = 0.1 * tolW
 
             # update H
-            if not self.fixed_H: #changes by Andreas Boye s122269
+            if not self.fixed_H:  # changes by Andreas Boye s122269
                 H, gradH, iterH = self._update_H(X, H, W, tolH)
                 if iterH == 1:
                     tolH = 0.1 * tolH
@@ -571,7 +569,7 @@ class ProjectedGradientNMF(BaseEstimator, TransformerMixin):
         self.data_sparseness_ = _sparseness(W.ravel())
 
         H[H == 0] = 0   # fix up negative zeros
-        W[W == 0] = 0 #changes by Andreas Boye s122269
+        W[W == 0] = 0   # changes by Andreas Boye s122269
         self.components_ = H
 
         if n_iter == self.max_iter:

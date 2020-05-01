@@ -2,11 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-### TODO: Fix load_ttl_times. Double check the resampling to match imaging speeds.
-
-### OUTPUT TO [trials x time] for each covariate.
-
-
 def get_led_frames(stack, yslice, xslice,
                    save_path=None,
                    do_plot=True,
@@ -16,23 +11,20 @@ def get_led_frames(stack, yslice, xslice,
     by a green LED flooding the frame.
 
     :param stack: [nframes x NY x NX x ncolorchannels]
-    :param yslice: vertical roi crop coordinates as a slice object, i.e. slice(10, 20)
-    :param xslice: horizontal roi crop coordinates as a slice object, i.e. slice(10, 20)
+    :param yslice: vertical roi crop coordinates as a slice object
+    :param xslice: horizontal roi crop coordinates as a slice object,
+                   i.e. slice(10, 20)
     :param save_path: optionally save out led frames and crop region trace.
     :param do_plot: bool. Plot the led frames overlaid on the roi trace.
-    :param do_display_LED_frames: bool. Show each frame to double check that the green light is on.
-                                  Takes a while.
+    :param do_display_LED_frames: bool.
+         Show each frame to double check that the green light is on.
+         Takes a while.
     :returns led_frames: a list of frame indices.
     """
 
     tslice = slice(0, None)
     cslice = slice(0, None)
     roi = (tslice, yslice, xslice, cslice)
-    #     zeros_mask = np.zeros_like(stack[0], np.uint8)
-    #     zeros_mask[roi[1:]] = 1
-    #     plt.imshow(stack[20000]*zeros_mask)
-    #     plt.xlabel('x');
-    #     plt.ylabel('y');
 
     rgb_file = save_path + 'RGB.npy'
     #     if not op.exists(rgb_file):
@@ -47,7 +39,7 @@ def get_led_frames(stack, yslice, xslice,
         plt.plot(rgb[:, 1], 'g')
         plt.plot(rgb[:, 2], 'b')
 
-    ### Extract LED frames
+    # Extract LED frames
     green_thresh = rgb[:, 1].mean() + 10 * np.std(rgb[:, 1])
     green_frames = np.where(rgb[:, 1] > green_thresh)[0]
     led_frames = green_frames[
@@ -64,14 +56,6 @@ def get_led_frames(stack, yslice, xslice,
             plt.figure()
             plt.imshow(stack[tt])
             plt.title(tt)
-
-    # # TODO
-    # do_remove_false_positives = False
-    # if do_remove_false_positives:
-    #     pass
-    #     false_positive_led_frames = [8618]
-    # lower_trial_on_led = np.delete(lower_trial_on_led, [0]) # #mouse = 'cux2m943' # date = '20180424'
-    # np.save(op.join(save_dir,  '%s_%s_1_lower_trial_on_led.npy' % (d['date'], d['name'])), lower_trial_on_led)
 
     return led_frames
 
@@ -95,8 +79,6 @@ def get_motion_energy(roi, data, do_normalize=True):
     if do_normalize:
         roi_npix = (roi[0].stop - roi[0].start)*(roi[1].stop - roi[1].start)
         energy /= roi_npix
-
-
     return energy
 
 
@@ -118,5 +100,5 @@ def show_roi(stack, rois):
 
     plt.figure()
     plt.imshow(stack[20000] * zeros_mask)
-    plt.xlabel('x');
-    plt.ylabel('y');
+    plt.xlabel('x')
+    plt.ylabel('y')

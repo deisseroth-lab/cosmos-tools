@@ -49,12 +49,14 @@ class BpodDataset:
         self.ntrials = self.B['nTrials']
         if ntrials is not None:
             self.ntrials = ntrials
-            print('While loading bpod, enforcing that ntrials is:' + str(ntrials))
+            print('While loading bpod, enforcing that ntrials is:'
+                  + str(ntrials))
 
         self.spout_positions = self.B['SpoutPositions'][:self.ntrials]
-        self.trial_types = self.B['TrialTypes'][:self.ntrials]  # i.e. which odor.
-        self.trial_start_times = (self.B['TrialStartTimestamp'][:self.ntrials] -
-                                  self.B['TrialStartTimestamp'][0])
+        self.trial_types = self.B['TrialTypes'][:self.ntrials]  # which odor.
+        trial_start = self.B['TrialStartTimestamp']
+        self.trial_start_times = (trial_start[:self.ntrials] -
+                                  trial_start[0])
 
         # Get stim event types if they exist
         self.stim_types = None
@@ -66,7 +68,6 @@ class BpodDataset:
         if 'StimInterval' in self.B:
             self.stim_interval = self.B['StimInterval']
             print('stim_interval ', self.stim_interval)
-
 
         # Lick rate for each spout smoothed to imaging speed
         self.spout_lick_rates = dict()
@@ -94,10 +95,10 @@ class BpodDataset:
             nt = self.ntrials
             lick_times_mat, lick_mat_t = bio.lick_times_to_matrix(lick_times,
                                                                   ntrials=nt,
-                                                                  hz=1000) #hz=1.0/0.034
-            self.spout_lick_rates[ind] = lick_rates[:self.ntrials,:]
+                                                                  hz=1000)
+            self.spout_lick_rates[ind] = lick_rates[:self.ntrials, :]
             self.spout_lick_times[ind] = lick_times
-            self.spout_lick_mat[ind] = lick_times_mat[:self.ntrials,:]
+            self.spout_lick_mat[ind] = lick_times_mat[:self.ntrials, :]
         self.lick_t = lick_t
         self.lick_mat_t = lick_mat_t
 
@@ -201,32 +202,32 @@ class BpodDataset:
         """
 
         odor_time = self.stimulus_times[0]
-        pre_odor_lick_frames = np.where(self.lick_mat_t<odor_time)[0]
+        pre_odor_lick_frames = np.where(self.lick_mat_t < odor_time)[0]
 
         spout_pre_odor_licks = dict()
         for spout in self.spout_lick_mat.keys():
-            pre_odor_licks = self.spout_lick_mat[spout][:, pre_odor_lick_frames]
+            pre_odor_licks = self.spout_lick_mat[spout][:,
+                                                        pre_odor_lick_frames]
             spout_pre_odor_licks[spout] = np.sum(pre_odor_licks, axis=1)
 
-        all_pre_odor_licks = np.vstack([x for x in spout_pre_odor_licks.values()])
+        vx = [x for x in spout_pre_odor_licks.values()]
+        all_pre_odor_licks = np.vstack(vx)
         max_pre_odor_licks = np.max(all_pre_odor_licks, axis=0)
 
-        no_preodor_lick_trials = max_pre_odor_licks <= max_licks
+        no_preodor = max_pre_odor_licks <= max_licks
 
         if do_plot:
             self.plot_lick_times(fig=plt.figure(figsize=(20, 20)),
-                            trials_subset=np.where(no_preodor_lick_trials)[0])
+                                 trials_subset=np.where(no_preodor)[0])
             plt.xlim([-3, 6])
             plt.suptitle('No preodor licks')
 
             self.plot_lick_times(fig=plt.figure(figsize=(20, 20)),
-                            trials_subset=np.where(~no_preodor_lick_trials)[0])
+                                 trials_subset=np.where(~no_preodor)[0])
             plt.xlim([-3, 6])
             plt.suptitle('Just with preodor licks')
 
-        return np.where(no_preodor_lick_trials)[0]
-
-
+        return np.where(no_preodor)[0]
 
     def plot_go_nogo_licks(self):
         """ Make a raster of go vs nogo licks. """
@@ -310,7 +311,7 @@ class BpodDataset:
         if underlay_stim_trials:
             if self.stim_types is not None:
                 for i in np.where(self.stim_types > 0)[0]:
-                    plt.plot([-10, 10], [i, i], color=(0.9, 0.9,0.9), alpha=1)
+                    plt.plot([-10, 10], [i, i], color=(0.9, 0.9, 0.9), alpha=1)
 
         start = self.stimulus_times[0]
         for spout_ind in range(len(self.spout_lick_times.keys())):
@@ -318,8 +319,8 @@ class BpodDataset:
             for trial_ind in spout.keys():
                 if trials_subset is None or trial_ind in trials_subset:
                     trial = spout[trial_ind] - start
-                    trial = trial[trial < 6] ## For visualization, cut off at 6 seconds.
-                    trial = trial[trial > -1] ## For visualization.
+                    trial = trial[trial < 6]  # Cut off plot at 6 seconds.
+                    trial = trial[trial > -1]  # For visualization.
                     plt.plot(trial, trial_ind * np.ones_like(trial),
                              '.', color=colors[spout_ind],
                              markersize=markersize)
@@ -330,7 +331,7 @@ class BpodDataset:
 
         # Stimulus offset
         plt.axvline(x=self.stimulus_times[0] + 1 - start,
-                    color='k', linestyle='--',lw=lw)
+                    color='k', linestyle='--', lw=lw)
 
         # Approximate reward onset
         plt.axvline(x=self.stimulus_times[0] + 1.5 - start,
@@ -340,7 +341,7 @@ class BpodDataset:
         plt.ylabel('Trial #')
         plt.title(self.session_name)
 
-        ### Plot trial type
+        # Plot trial type
         for trial, active_spout in enumerate(self.spout_positions):
             plt.plot(6.4, trial, '_', ms=4, color=colors[active_spout - 1])
             if self.trial_types[trial] == 4:
@@ -354,7 +355,7 @@ class BpodDataset:
         print('Saving to: ', save_path)
         plt.savefig(save_path)
 
-    def plot_mean_lick_rates(self, which_trials, ax=None):
+    def plot_mean_lick_rates(self, which_trials, ax=None, xlims=None):
         """
         Overlay the lick rate to each spout for a provided
         set of trials.
@@ -362,7 +363,7 @@ class BpodDataset:
         :param ax: axes to plot to.
         """
         if ax is None:
-            ax=plt.figure().gca()
+            ax = plt.figure().gca()
         plt.sca(ax)
 
         for spout in self.spout_lick_rates.keys():
@@ -375,6 +376,9 @@ class BpodDataset:
             plt.ylabel('Lick rate')
             plt.xlabel('Time [s]')
         plt.legend()
+        if xlims is not None:
+            plt.gca().set_xlim(xlims)
+        plt.title('Mean lick rate')
 
     def plot_lick_matrix(self, fig=None, dilation_width=10):
         """
@@ -438,9 +442,9 @@ class BpodDataset:
                           up to this trial,
                           while the mouse gets warmed up.
         :param do_save: bool. Save out the plots.
-        :param trial_subset: an array of the same length as self.spout_positions
+        :param trial_subset: array of the same length as self.spout_positions
                              that indicates whether a trial should or
-                             should not be included in plotting the selectivity.
+                             should not be included in plotting selectivity.
         :returns pre_out, post_out: data to plot polar plots for pre-reward
                                     and post-reward periods.
         """
@@ -585,7 +589,7 @@ class BpodDataset:
         for target_spout in range(spout_dist.shape[0]):
             d = spout_dist[target_spout, :]
             d = d / np.max(d)
-            spout_dist[target_spout,:] = d
+            spout_dist[target_spout, :] = d
             ax.plot(np.append(theta, theta[0]), np.append(d, d[0]),
                     color=colors[target_spout].replace('white', 'black'),
                     linewidth=5)
@@ -607,7 +611,7 @@ class BpodDataset:
     def plot_stim_licks(self, off_code=99, stim_interval=[0, 1],
                         fig_save_dir=None, ax=None, titles=None,
                         max_trial=None, max_subset_trial=None,
-                       include_explore_trials=True):
+                        include_explore_trials=True):
         """
         Make a raster of licks during different stim condition trials.
 
@@ -634,32 +638,41 @@ class BpodDataset:
             subset_ind = 0
             for trial_ind in stim_trials:
                 if max_trial is None or trial_ind < max_trial:
-                    if max_subset_trial is None or subset_ind < max_subset_trial:
-                        if self.trial_types[trial_ind] != 4: ### Exclude nogo trials
-                            if include_explore_trials or self.trial_types[trial_ind] != 2: ### Only include non-explore GO trials
+                    if (max_subset_trial is None or
+                            subset_ind < max_subset_trial):
+                        if self.trial_types[trial_ind] != 4:  # Exclude nogo
+                            if (include_explore_trials or
+                                    self.trial_types[trial_ind] != 2):
                                 ct[sdx] += 1
                                 subset_ind += 1
-                                for spout_ind in range(len(self.spout_lick_times.keys())):
+                                keys = self.spout_lick_times.keys()
+                                for spout_ind in range(len(keys)):
                                     spout = self.spout_lick_times[spout_ind]
                                     if trial_ind in spout.keys():
                                         # Plot licks
                                         trial = spout[trial_ind] - start
 
-                                        # ### CUT OFF ALL BUT MAX TIMEPOINT
-                                        max_timepoint = 4
+                                        # CUT OFF ALL BUT MAX TIMEPOINT
+                                        max_time = 4
                                         if isinstance(trial, np.ndarray):
-                                            trial = trial[np.where(trial < max_timepoint)]
+                                            trial = trial[
+                                                np.where(trial < max_time)]
 
-                                        cax.plot(trial, ct[sdx] * np.ones_like(trial),
-                                                 '.', color=cc[spout_ind], markersize=2)
+                                        ones_trial = np.ones_like(trial)
+                                        cax.plot(trial, ct[sdx] * ones_trial,
+                                                 '.', color=cc[spout_ind],
+                                                 markersize=2)
 
                                 active_spout = self.spout_positions[trial_ind]
-                                cax.plot(4.7, ct[sdx], '.', ms=4, color=cc[active_spout - 1])
+                                cax.plot(4.7, ct[sdx], '.',
+                                         ms=4, color=cc[active_spout - 1])
 
                                 if self.success[trial_ind]:
-                                    cax.plot(4.3, ct[sdx], '_', ms=6, color='g')
+                                    cax.plot(4.3, ct[sdx], '_',
+                                             ms=6, color='g')
                                 else:
-                                    cax.plot(4.3, ct[sdx], '_', ms=6, color='m')
+                                    cax.plot(4.3, ct[sdx], '_',
+                                             ms=6, color='m')
 
         for sdx, cax in enumerate(ax):
             if titles is not None:
@@ -716,6 +729,7 @@ class BpodDataset:
                         scores = scores.append(d, ignore_index=True)
 
         if do_plot:
+            suffix = self.suffix
             plt.figure(figsize=(15, 5))
             for ind, spout in enumerate([0, 2, 3]):
                 plt.subplot(1, 3, ind + 1)
@@ -726,7 +740,7 @@ class BpodDataset:
                 plt.title('Spout ' + str(spout))
             if fig_save_dir is not None:
                 save_path = os.path.join(self.fig_save_dir,
-                                         'stim_lick_rates_per_spout'+self.suffix)
+                                         'stim_lick_rates_per_spout'+suffix)
                 print('Saving to: ', save_path)
                 plt.savefig(save_path)
 
@@ -737,7 +751,7 @@ class BpodDataset:
             plt.title('Mean across spouts')
             if fig_save_dir is not None:
                 save_path = os.path.join(self.fig_save_dir,
-                                         'stim_lick_rates_all_spouts'+self.suffix)
+                                         'stim_lick_rates_all_spouts'+suffix)
                 print('Saving to: ', save_path)
                 plt.savefig(save_path)
 
@@ -813,14 +827,6 @@ class BpodDataset:
                 np.logical_and(trial_types == 4, np.isnan(self.punish_times))
             )
         elif protocol == 'COSMOSTrainMultiBlockGNG':
-            # sm = self.small_reward_times
-            # success = np.logical_or.reduce((
-            #     np.logical_and(trial_types == 3, ~np.isnan(sm)),
-            #     np.logical_and(trial_types == 3, ~np.isnan(self.reward_times)),
-            #     np.logical_and(trial_types == 2, ~np.isnan(self.reward_times)),
-            #     np.logical_and(trial_types == 2, ~np.isnan(sm)),
-            #     np.logical_and(trial_types == 4, np.isnan(self.punish_times))
-            # ))
             success = np.logical_or.reduce((
                 ~np.isnan(self.reward_times),
                 np.logical_and(trial_types == 4, np.isnan(self.punish_times))

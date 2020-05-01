@@ -19,7 +19,8 @@ class CosmosTraces:
     """
 
     def __init__(self, dataset_dict, behavior_plots=True,
-                 ttl_plots=False, do_reshape_to_traces=True, do_region_plots=False,
+                 ttl_plots=False, do_reshape_to_traces=True,
+                 do_region_plots=False,
                  use_parent=True, min_area_count=50, s_kernel_size=3,
                  nt_per_trial=7, ntrials=None):
 
@@ -60,6 +61,7 @@ class CosmosTraces:
         self.fig_save_path = os.path.join(dataset_dict['fig_save_dir'],
                                           dataset_dict['date'],
                                           dataset_dict['name'])
+        os.makedirs(self.fig_save_path, exist_ok=True)
 
         # Load up the output from CosmosDataset.saveMerged() (an HDF5 file).
         print('(1/3) Loading trace data.')
@@ -69,7 +71,6 @@ class CosmosTraces:
                                dataset_dict['name'] + '-merged_traces.h5')
         self._load_traces(h5_path)
         if ntrials is None:
-            #ntrials = len(self.led_frames) - 2 ### USE THIS FOR COVARIATE LOADING
             ntrials = len(self.led_frames) - 1
         self.ntrials = ntrials
 
@@ -78,7 +79,8 @@ class CosmosTraces:
             print('(2/3) Loading behavior data.')
             bpod_data_fullpath = os.path.join(dataset_dict['behavior_dir'],
                                               dataset_dict['bpod_file'])
-            self._load_behavior(bpod_data_fullpath, plot=behavior_plots, ntrials=ntrials)
+            self._load_behavior(
+                bpod_data_fullpath, plot=behavior_plots, ntrials=ntrials)
             self.loaded_behavior = True
         else:
             self.bd = None
@@ -98,9 +100,8 @@ class CosmosTraces:
             self.fps = np.nanmean((self.led_frames[1:20]-self.led_frames[0]) /
                                   self.bd.trial_start_times[1:20])
             self.dt = 1.0/self.fps
-            self.event_frames = self.fps*np.array([0,
-                                                   self.bd.stimulus_times[0],
-                                                   self.bd.stimulus_times[0]+1.5])
+            self.event_frames = self.fps*np.array(
+                [0, self.bd.stimulus_times[0], self.bd.stimulus_times[0]+1.5])
         else:
             # warnings.warn('Bpod file not loaded: hardcoding dt.')
             print('Bpod file not loaded: hardcoding dt.')
@@ -113,8 +114,8 @@ class CosmosTraces:
 
         # Do further processing/organization of traces.
         print('Processing traces.')
-        atlas_assignments = self._assign_cells_to_regions(do_plot=do_region_plots,
-                                                          use_parent=use_parent)
+        atlas_assignments = self._assign_cells_to_regions(
+            do_plot=do_region_plots, use_parent=use_parent)
 
         self.cells_in_region = atlas_assignments[0]
         self.region_of_cell = atlas_assignments[1]
@@ -124,8 +125,8 @@ class CosmosTraces:
 
         self.nt_per_trial = nt_per_trial
         if do_reshape_to_traces:
-            self._reshape_traces_to_trials(self.dt, nt=self.nt_per_trial,
-                                           ntrials=self.ntrials) # Sets Ct,Ft,St,Tt
+            self._reshape_traces_to_trials(
+                self.dt, nt=self.nt_per_trial, ntrials=self.ntrials)
             self.St_smooth = gaussian_filter1d(self.St, s_kernel_size,
                                                axis=1, mode='constant')
 
@@ -153,7 +154,7 @@ class CosmosTraces:
             lt = len(self.led_frames)
             if (np.abs(lt - nt) > max_offset or (
                     np.abs(lt - self.bd.ntrials) > max_offset)):
-                    raise ValueError('Inconsistent number of trials detected!')
+                raise ValueError('Inconsistent number of trials detected!')
         else:
             print('Warning: trial onsets only determined with LED times!')
 
@@ -190,7 +191,6 @@ class CosmosTraces:
                                  set_alpha=set_alpha,
                                  set_radius=set_radius,
                                  highlight_inds=highlight_inds)
-
 
     def plot_variance_shaded_traces(self, avgs, errs,
                                     cell_inds=None,
@@ -267,7 +267,7 @@ class CosmosTraces:
         """
 
         utils.plot_cell_across_trial_types(cell,
-                                           self.Ft, #self.St_smooth,
+                                           self.Ft,
                                            self.footprints,
                                            self.Tt, self.fps, self.mean_image,
                                            self.atlas_outline,
@@ -277,7 +277,8 @@ class CosmosTraces:
     def plot_raster_by_region(self, traces=None,
                               nframes=3000,
                               startframe=0,
-                              which_regions=['MO', 'PTLp', 'RSP', 'SSp', 'VIS'],
+                              which_regions=[
+                                  'MO', 'PTLp', 'RSP', 'SSp', 'VIS'],
                               event_frames=None):
         """
         Wrapper function for utils.plot_raster_by_region to
@@ -312,7 +313,7 @@ class CosmosTraces:
             covariate_dir = os.path.join(self.root_path, 'behavior_videos',
                                          self.date, self.regressors_name)
 
-            ### Load previously saved out regressors.
+            # Load previously saved out regressors.
             upper_camera_path = os.path.join(covariate_dir,
                                              self.date + '_'
                                              + self.regressors_name
@@ -327,12 +328,11 @@ class CosmosTraces:
             with open(lower_camera_path, 'rb') as f:
                 lower_camera_data = pickle.load(f)
 
-            ### Rescale regressors and shape them organize them by trials.
+            # Rescale regressors and shape them organize them by trials.
             for key in ['left_whisker_energy', 'right_whisker_energy']:
                 r_covariate, r_led_frames = utils.rescale_covariates(
-                                                lower_camera_data[key],
-                                                lower_camera_data['led_frames'],
-                                                self.led_frames, do_debug=do_debug)
+                    lower_camera_data[key], lower_camera_data['led_frames'],
+                    self.led_frames, do_debug=do_debug)
                 covar_trials = utils.reshape_to_trials(r_covariate,
                                                        r_led_frames,
                                                        nt=self.nt_per_trial,
@@ -340,11 +340,11 @@ class CosmosTraces:
                                                        ntrials=self.ntrials)
                 self.covars[key] = covar_trials
 
-            for key in ['upper_body_motion_energy', 'upper_face_motion_energy']:
+            for key in [
+                    'upper_body_motion_energy', 'upper_face_motion_energy']:
                 r_covariate, r_led_frames = utils.rescale_covariates(
-                                                    upper_camera_data[key],
-                                                    upper_camera_data['led_frames'],
-                                                    self.led_frames, do_debug=do_debug)
+                    upper_camera_data[key], upper_camera_data['led_frames'],
+                    self.led_frames, do_debug=do_debug)
                 covar_trials = utils.reshape_to_trials(r_covariate,
                                                        r_led_frames,
                                                        nt=self.nt_per_trial,
@@ -352,8 +352,10 @@ class CosmosTraces:
                                                        ntrials=self.ntrials)
                 self.covars[key] = covar_trials
 
-            self.lower_behavior_camera_led_frames = lower_camera_data['led_frames']
-            self.upper_behavior_camera_led_frames = upper_camera_data['led_frames']
+            self.lower_behavior_camera_led_frames = lower_camera_data[
+                'led_frames']
+            self.upper_behavior_camera_led_frames = upper_camera_data[
+                'led_frames']
 
             if do_plot:
                 for key in self.covars.keys():
@@ -361,7 +363,8 @@ class CosmosTraces:
                     plt.title(key)
                     plt.imshow(self.covars[key][0, :, :].T)
         else:
-            print('No regressors specified for this dataset: {}/{}'.format(self.date, self.name))
+            print('No regressors specified for this dataset: {}/{}'.format(
+                self.date, self.name))
 
     # Private functions.
     def _load_traces(self, traces_hdf5):
@@ -371,7 +374,7 @@ class CosmosTraces:
             self.S = np.array(hf['spikes'])
             self.C = np.array(hf['tseries'])
             self.F = np.array(hf['tseries_raw'])
-            
+
             # Save information about traces
             self.footprints = np.array(hf['footprints'])
             self.mean_image = np.squeeze(
@@ -399,20 +402,13 @@ class CosmosTraces:
                                                            atlas_coords)
 
     def _load_behavior(self, behavior_path, plot=True, ntrials=None):
-        self.bd = BpodDataset(behavior_path, self.fig_save_path, ntrials=ntrials)
+        self.bd = BpodDataset(
+            behavior_path, self.fig_save_path, ntrials=ntrials)
 
         if plot:
             self.bd.plot_spout_selectivity(min_trial=10)
             self.bd.plot_lick_times()
             self.bd.plot_success()
-
-    # def _load_behavior(self, behavior_path, plot=True):
-    #     self.bd = BpodDataset(behavior_path, self.fig_save_path)
-    #
-    #     if plot:
-    #         self.bd.plot_spout_selectivity(min_trial=10)
-    #         self.bd.plot_lick_times()
-    #         self.bd.plot_success()
 
     def _reshape_traces_to_trials(self, dt, nt, ntrials=None):
         """
@@ -433,7 +429,6 @@ class CosmosTraces:
         St = utils.reshape_to_trials(self.S, self.led_frames,
                                      nt, dt, ntrials=ntrials)
         self.St = St
-        # self.St = (St > 0).astype(float) ### COMMENTED THIS OUT ON 2019.07.22
         self.Tt = np.arange(self.Ct.shape[1]) * dt
 
     def _assign_hemisphere_of_cell(self, do_plot=True):
@@ -508,7 +503,6 @@ class CosmosTraces:
                                                      do_debug=False)
 
         if 0 in c_in_r.keys():
-            ### Remove entry for sources that are outside of the brain.
             del c_in_r[0]
 
         regions = dict()

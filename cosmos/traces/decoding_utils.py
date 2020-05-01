@@ -58,7 +58,6 @@ def load_cosmos_traces(dataset, data_dir, base_dir, bpod_dir,
     return CT_load
 
 
-
 def organize_decoding_expts_across_mice(expt_ids, data_dir, concluded_expts,
                                         which_metric, which_set,
                                         linestyle, mouse_colors,
@@ -76,20 +75,23 @@ def organize_decoding_expts_across_mice(expt_ids, data_dir, concluded_expts,
 
     all_accs_list = []
     all_expt_nums_organized = []
-    all_collapsed_accs = [] ### Accuracies collapsed across folds (i.e. the mean or max across folds.)
+    all_collapsed_accs = []  # Accuracies collapsed across folds (mean or max)
     all_ordering = []
     for mind, expt_id in enumerate(expt_ids):
         expt_group = concluded_expts[expt_id]
-        decoding_load_dir = os.path.join(data_dir, 'decoding_results', str(expt_group['id']))
+        decoding_load_dir = os.path.join(
+            data_dir, 'decoding_results', str(expt_group['id']))
         expt_nums = expt_group['expt_nums']
         expt_type = expt_group['expt_type']
-        metric, expts_info = load_decoding_experiments(decoding_load_dir, expt_nums,
-                                                       which_metric=which_metric)
+        metric, expts_info = load_decoding_experiments(
+            decoding_load_dir, expt_nums, which_metric=which_metric)
 
         # Organize the folds of each experiment within a group
-        accs_list, accs_names, expt_nums_organized = organize_decoding_experiments(metric,
-                                                                                   expts_info,
-                                                                                   expt_type) #'nneurons', 'neuron_set', 'hemisphere'
+        al, an, eno = organize_decoding_experiments(
+            metric, expts_info, expt_type)
+        accs_list = al
+        accs_names = an
+        expt_nums_organized = eno
         accs_dict = {}
         for iter, name in enumerate(accs_names):
             accs_dict[name] = accs_list[iter]
@@ -110,7 +112,9 @@ def organize_decoding_expts_across_mice(expt_ids, data_dir, concluded_expts,
 
         all_collapsed_accs.append(mean_accs)
 
-    return (all_accs_list, all_expt_nums_organized, all_collapsed_accs, all_ordering, xvals)
+    return (all_accs_list, all_expt_nums_organized,
+            all_collapsed_accs, all_ordering, xvals)
+
 
 def summarize_decoding_results(ds, model):
     """
@@ -247,8 +251,9 @@ def shuffle_labels(ds, do_circ_perm=False):
     if do_circ_perm:
         print('Using circular permutation shuffle.')
         for key in ['Y_test', 'Y_train', 'Y_valid']:
+            # Ensure no chance for exact overlap
             shift = np.random.randint(int(ds_shuffled[key].shape[0]/4),
-                                      int(ds_shuffled[key].shape[0]*3/4)) # Ensure no chance for exact overlap
+                                      int(ds_shuffled[key].shape[0]*3/4))
             ds_shuffled[key] = np.roll(ds_shuffled[key], shift, axis=0)
     else:
         np.random.shuffle(ds_shuffled['Y_test'])
@@ -1162,8 +1167,7 @@ def get_decoding_experiment_group(params, CT, decoding_save_dir):
                 expt_num += 1
 
     elif expt_name == 'compare_subset_size':
-        for nneurons in [100, 250, 500, 750, 1000]: ### This is what you originally had.
-        # for nneurons in [50, 100, 250, 500, 750, 1000]:
+        for nneurons in [100, 250, 500, 750, 1000]:
             neuron_opts_template = {'nneurons': nneurons,
                                     'neuron_set': 'rand',
                                     'neuron_rand_seed': neuron_rand_seed,
@@ -1413,9 +1417,9 @@ def get_stars(p_value):
         if p_value < thresh:
             return label
 
-def get_pvals_for_decoding_experiment_set_vs_shuff(decoding_performances,
-                                                   which_set,
-                                                   shuff_decoding_performances):
+
+def get_pvals_for_decoding_experiment_set_vs_shuff(
+        decoding_performances, which_set, shuff_decoding_performances):
     """
     Compute  statistical tests for a decoding experiment set.
     The specific tests you do depends on which experiment set.
@@ -1439,7 +1443,7 @@ def get_pvals_for_decoding_experiment_set_vs_shuff(decoding_performances,
     # Compute statistical tests across mice.
     if which_set == 1:
 
-        ### Repeated measures Anova before post-hoc ttests
+        # Repeated measures Anova before post-hoc ttests
         from statsmodels.stats.anova import AnovaRM
         import pandas
         df = pandas.DataFrame()
@@ -1447,8 +1451,8 @@ def get_pvals_for_decoding_experiment_set_vs_shuff(decoding_performances,
         nsources = [100, 250, 500, 750, 1000]
         for mm in mice_ids:
             for nind, nn in enumerate(nsources):
-                df = df.append({'nsources':nn, 'mouse_id':mm,
-                                'score':decoding_performances[mm, nind]},
+                df = df.append({'nsources': nn, 'mouse_id': mm,
+                                'score': decoding_performances[mm, nind]},
                                ignore_index=True)
         aovrm = AnovaRM(df, 'score', 'mouse_id', within=['nsources'])
         res = aovrm.fit()
@@ -1469,8 +1473,9 @@ def get_pvals_for_decoding_experiment_set_vs_shuff(decoding_performances,
             t, p3 = scipy.stats.ttest_rel(decoding_performances[:, ind1000],
                                           decoding_performances[:, 3])
             if do_include_n50_sources:
-                t, p4 = scipy.stats.ttest_rel(decoding_performances[:, ind1000],
-                                              decoding_performances[:, 4])
+                t, p4 = scipy.stats.ttest_rel(
+                    decoding_performances[:, ind1000],
+                    decoding_performances[:, 4])
 
         else:
             t, p0 = scipy.stats.ttest_rel(decoding_performances[:, 1],
@@ -1494,7 +1499,8 @@ def get_pvals_for_decoding_experiment_set_vs_shuff(decoding_performances,
         else:
             sig, p, _, _ = mt.multipletests([p0, p1, p2, p3, p4],
                                             alpha=0.05, method='fdr_bh')
-            ss = ' p0 {:.3}{}, p1 {:.3}{},  p2 {:.3}{}, p3 {:.3}{}, p4 {:.3}{} vs1000={}\n'
+            ss = (' p0 {:.3}{}, p1 {:.3}{},' +
+                  ' p2 {:.3}{}, p3 {:.3}{}, p4 {:.3}{} vs1000={}\n')
             pval_str = ss.format(p[0], get_stars(p[0]), p[1], get_stars(p[1]),
                                  p[2], get_stars(p[2]), p[3], get_stars(p[3]),
                                  p[4], get_stars(p[4]),
@@ -1564,7 +1570,7 @@ def get_pvals_for_decoding_experiment_set(decoding_performances, which_set):
     # Compute statistical tests across mice.
     if which_set == 1:
 
-        ### Repeated measures Anova before post-hoc ttests
+        # Repeated measures Anova before post-hoc ttests
         from statsmodels.stats.anova import AnovaRM
         import pandas
         df = pandas.DataFrame()
@@ -1572,8 +1578,8 @@ def get_pvals_for_decoding_experiment_set(decoding_performances, which_set):
         nsources = [100, 250, 500, 750, 1000]
         for mm in mice_ids:
             for nind, nn in enumerate(nsources):
-                df = df.append({'nsources':nn, 'mouse_id':mm,
-                                'score':decoding_performances[mm, nind]},
+                df = df.append({'nsources': nn, 'mouse_id': mm,
+                                'score': decoding_performances[mm, nind]},
                                ignore_index=True)
         aovrm = AnovaRM(df, 'score', 'mouse_id', within=['nsources'])
         res = aovrm.fit()
@@ -1827,10 +1833,15 @@ def get_data_for_decoding(CT, opts, do_debug=False, random_split=True):
     # Set input data from which to decode.
     if train_feat == 'spikes':
         neural_data = CT.S.T
-        # neural_data = (neural_data > 0).astype(float)  ### Commented this on 20190814 (for resubmission), and add 'spikes_binarized' option
+
+        # Commented this on 20190814 (for resubmission),
+        # and added 'spikes_binarized' option
+        # neural_data = (neural_data > 0).astype(float)
     if train_feat == 'spikes_binarized':
         neural_data = CT.S.T
-        neural_data = (neural_data > 0).astype(float)  ### Commented this on 20190814 (for resubmission)
+
+        # Added this on 20190814 (for resubmission)
+        neural_data = (neural_data > 0).astype(float)
     if train_feat == 'smooth_spikes':
         neural_data = gaussian_filter1d(CT.S, 1.5, axis=1, mode='constant').T
     elif train_feat == 'fluor':
@@ -1852,7 +1863,7 @@ def get_data_for_decoding(CT, opts, do_debug=False, random_split=True):
                 lick_frames += trial_onset_frames[trial].astype(np.int)
                 try:
                     spout_lick_frames[spout].extend(lick_frames)
-                except:
+                except TypeError:
                     spout_lick_frames[spout].append(lick_frames)
 
     # Set target labels to decode.
@@ -1908,11 +1919,7 @@ def get_data_for_decoding(CT, opts, do_debug=False, random_split=True):
             Y_licks[v, spout_keys.index(k)] = 1
             lick_idx.extend(v)
         Y_full = Y_licks
-    elif decoding_set == 8:  # latent spout1 vs latent spout2 vs latent spout3
-                            # just pre-odor, and just clean trials.
-
-        # GOAL: [
-        # Y_full = np.zeros((Y_licks.shape[0], 1+Y_licks.shape[1]))
+    elif decoding_set == 8:
         pass
 
     else:
@@ -2194,19 +2201,13 @@ def get_source_discriminativity(data_split, CT, data_opts, decoding_save_dir,
                                                X[np.where(y == 1)[0], bin, c])
 
                 elif data_opts['decoding_set'] == 6:  # 3-way classification
-                        f, p = scipy.stats.kruskal(X[np.where(y == 0)[0], bin,
-                                                     c],
-                                                   X[np.where(y == 1)[0], bin,
-                                                     c],
-                                                   X[np.where(y == 2)[0], bin,
-                                                     c])
+                    f, p = scipy.stats.kruskal(X[np.where(y == 0)[0], bin, c],
+                                               X[np.where(y == 1)[0], bin, c],
+                                               X[np.where(y == 2)[0], bin, c])
                 elif data_opts['decoding_set'] == 7:  # 3-way classification
-                        f, p = scipy.stats.kruskal(X[np.where(y == 0)[0], bin,
-                                                     c],
-                                                   X[np.where(y == 1)[0], bin,
-                                                     c],
-                                                   X[np.where(y == 2)[0], bin,
-                                                     c])
+                    f, p = scipy.stats.kruskal(X[np.where(y == 0)[0], bin, c],
+                                               X[np.where(y == 1)[0], bin, c],
+                                               X[np.where(y == 2)[0], bin, c])
             else:
                 p = 1
             pvals[cell, bin] = p
@@ -2402,7 +2403,6 @@ def multi_class_roc_auc(y_true, y_pred, do_plot=False):
     return fpr, tpr, roc_auc
 
 
-
 def get_ROC_curves(expts_info, expt_sets, data_dir, fig_save_dir,
                    is_shuff=False,
                    do_plot_confusion_matrices=True,
@@ -2421,25 +2421,32 @@ def get_ROC_curves(expts_info, expt_sets, data_dir, fig_save_dir,
                        i.e. {'id': 19, 'expt_nums': np.arange(1021, 1025),
                              'expt_type': 'neuron_set', 'info':10}
     :param expt_sets: a list of indices into expts_info dict.
-    :param data_dir: path to directory containing data, i.e. '/Dropbox/cosmos_data/'
+    :param data_dir: path to directory containing data, i.e.
+                     '/Dropbox/cosmos_data/'
     :param fig_save_dir: path to directory for saving plots.
     :param is_shuff: bool. Are the decoding experiments a shuffled control?
-    :param do_plot_confusion_matrices: bool. Whether to plot the mean confusion matrix
+    :param do_plot_confusion_matrices: bool. Whether to plot the
+                                       mean confusion matrix
                                        for each experiment set.
     :param do_plot_individual_roc_curves: bool. Whether to plot the individual
-                                          roc curves for each fold of each experiment.
-    :return: all_mean_fpr - list of arrays, false-positive-rate as the classification
+                                          roc curves for each
+                                          fold of each experiment.
+    :return: all_mean_fpr - list of arrays, false-positive-rate
+                            as the classification
                             threshold is varied.
-             all_mean_tpr - list of arrays. true-positive-rate as the classification
+             all_mean_tpr - list of arrays. true-positive-rate
+                            as the classification
                             threshold is varied.
-             all_labels - the name corresponding to each entry in all_mean_fpr and all_mean_tpr
+             all_labels - the name corresponding to each entry in
+                          all_mean_fpr and all_mean_tpr
     """
 
     all_mean_fpr = []
     all_mean_tpr = []
     all_labels = []
     plt.figure(expt_sets[0])
-    for expt_id in expt_sets:  # Load each decoding experiment group (i.e. for each mouse)
+    # Load each decoding experiment group (i.e. for each mouse)
+    for expt_id in expt_sets:
         expt_group = expts_info[expt_id]
         decoding_load_dir = os.path.join(data_dir, 'decoding_results',
                                          str(expt_group['id']))
@@ -2452,7 +2459,7 @@ def get_ROC_curves(expts_info, expt_sets, data_dir, fig_save_dir,
         fold_fpr = defaultdict(list)
         fold_tpr = defaultdict(list)
         fold_cm = []
-        for expt_num in expt_nums:  # Load each fold in a decoding experiment group
+        for expt_num in expt_nums:
             expt_file = os.path.join(decoding_load_dir,
                                      'expt_{:06}'.format(expt_num))
 
@@ -2465,9 +2472,7 @@ def get_ROC_curves(expts_info, expt_sets, data_dir, fig_save_dir,
             licks_true = decode_summary['licks_true']
             licks_pred = decode_summary['licks_pred']
 
-            do_recompute_y_true = True  # There are two advantages to recomputing:
-                                        #    -will not have any multi-label datapoints,
-                                        #    -also wasn't saved for prev classification
+            do_recompute_y_true = True
             if do_recompute_y_true:
                 y_true = dict()
                 for key in licks_true.keys():
@@ -2497,10 +2502,10 @@ def get_ROC_curves(expts_info, expt_sets, data_dir, fig_save_dir,
                 fold_fpr[key].append(fpr_new)
                 fold_tpr[key].append(tpr_new)
 
-        mean_fpr = np.mean(np.vstack([fold_fpr[key] for key in fold_fpr.keys()]),
-                           axis=0)
-        mean_tpr = np.mean(np.vstack([fold_tpr[key] for key in fold_tpr.keys()]),
-                           axis=0)
+        mean_fpr = np.mean(
+            np.vstack([fold_fpr[key] for key in fold_fpr.keys()]), axis=0)
+        mean_tpr = np.mean(
+            np.vstack([fold_tpr[key] for key in fold_tpr.keys()]), axis=0)
 
         all_mean_fpr.append(mean_fpr)
         all_mean_tpr.append(mean_tpr)
@@ -2589,11 +2594,12 @@ def plot_discrimination_capacity_ordering(concluded_expts,
     for a specified set of decoding experiments.
 
     :param concluded_expts: dict. keys correspond to indices in 'expt_sets'.
-                            values are the output from lick_decoder.decode_licks(),
+                        values are the output from lick_decoder.decode_licks(),
                             i.e. {'id': 19, 'expt_nums': np.arange(1021, 1025),
                             'expt_type': 'neuron_set', 'info':10}
     :param expt_ids: keys into concluded_expts dict.
-    :param data_dir: path to directory containing data, i.e. '/Dropbox/cosmos_data/'
+    :param data_dir:
+        path to directory containing data, i.e. '/Dropbox/cosmos_data/'
     :param mouse_colors_dict: dict, keys are mouse experiment ids,
                                 values are [#color, mouse_name]
     :param fig_save_dir: path to directory for saving plots.
@@ -2684,11 +2690,12 @@ def plot_significant_discrimination_capacity_sources(concluded_expts,
       for a specified set of decoding experiments.
 
       :param concluded_expts: dict. keys correspond to indices in 'expt_sets'.
-                              values are the output from lick_decoder.decode_licks(),
-                              i.e. {'id': 19, 'expt_nums': np.arange(1021, 1025),
-                              'expt_type': 'neuron_set', 'info':10}
+                        values are the output from lick_decoder.decode_licks(),
+                        i.e. {'id': 19, 'expt_nums': np.arange(1021, 1025),
+                        'expt_type': 'neuron_set', 'info':10}
       :param expt_ids: keys into concluded_expts dict.
-      :param data_dir: path to directory containing data, i.e. '/Dropbox/cosmos_data/'
+      :param data_dir: path to directory
+        containing data, i.e. '/Dropbox/cosmos_data/'
       :param mouse_colors_dict: dict, keys are mouse experiment ids,
                                 values are [#color, mouse_name]
       :param fig_save_dir: path to directory for saving plots.
@@ -2734,12 +2741,12 @@ def plot_significant_discrimination_capacity_sources(concluded_expts,
 
 
 def plot_discrimination_capacity_of_sources(concluded_expts,
-                                             expt_ids,
-                                             all_ordering,
-                                             allCT,
-                                             mouse_colors_dict,
-                                             fig_save_dir,
-                                             num_cells=None):
+                                            expt_ids,
+                                            all_ordering,
+                                            allCT,
+                                            mouse_colors_dict,
+                                            fig_save_dir,
+                                            num_cells=None):
     """
       For the decoding experiments, sources were ordered
       according their degree of discrimination capacity.
@@ -2750,11 +2757,12 @@ def plot_discrimination_capacity_of_sources(concluded_expts,
       for a specified set of decoding experiments.
 
       :param concluded_expts: dict. keys correspond to indices in 'expt_sets'.
-                              values are the output from lick_decoder.decode_licks(),
-                              i.e. {'id': 19, 'expt_nums': np.arange(1021, 1025),
-                              'expt_type': 'neuron_set', 'info':10}
+                        values are the output from lick_decoder.decode_licks(),
+                        i.e. {'id': 19, 'expt_nums': np.arange(1021, 1025),
+                        'expt_type': 'neuron_set', 'info':10}
       :param expt_ids: keys into concluded_expts dict.
-      :param data_dir: path to directory containing data, i.e. '/Dropbox/cosmos_data/'
+      :param data_dir: path to directory containing
+                data, i.e. '/Dropbox/cosmos_data/'
       :param mouse_colors_dict: dict, keys are mouse experiment ids,
                                 values are [#color, mouse_name]
       :param fig_save_dir: path to directory for saving plots.
@@ -2832,9 +2840,10 @@ def load_individual_decoding_experiment(CT_load, decoding_load_dir,
                               model.model.count_params())
 
         if fig_save_dir is not None:
-            plt.gcf().set_size_inches(w=7, h=3)  # Control size of figure in inches
+            plt.gcf().set_size_inches(w=7, h=3)
             plt.savefig(
-                fig_save_dir + 'decode_summary_' + str(load_dataset_id) + '_' + str(
+                fig_save_dir + 'decode_summary_' +
+                str(load_dataset_id) + '_' + str(
                     expt_num) + '.pdf',
                 transparent=True, rasterized=True, dpi=600)
 
@@ -2862,7 +2871,8 @@ def plot_example_decoded_licks(CT_load, ds, decode_summary,
     dt = CT_load.dt
     t = dt * idx
 
-    trial_frames = np.where(np.diff(ds['trial_labels'][data_subset][idx]) > 0)[0]
+    trial_frames = np.where(
+        np.diff(ds['trial_labels'][data_subset][idx]) > 0)[0]
     trial_starts = dt * trial_frames
 
     plt.figure(figsize=(20, 20))
@@ -2885,7 +2895,7 @@ def plot_example_decoded_licks(CT_load, ds, decode_summary,
     plt.ylabel('Spout #')
 
     if fig_save_dir is not None:
-        plt.gcf().set_size_inches(w=6, h=1.5)  # Control size of figure in inches
+        plt.gcf().set_size_inches(w=6, h=1.5)
         plt.savefig(fig_save_dir + 'example_lick_prediction_zoomout_' +
                     str(dataset_id) + '_' + str(expt_num) + '_' +
                     str(start_trial) + '_' + str(end_trial) + '.pdf',
@@ -2984,7 +2994,9 @@ def sliding_window(a, ws, ss=None, flatten=True):
     # ensure that ws, ss, and a.shape all have the same number of dimensions
     ls = [len(shape), len(ws), len(ss)]
     if 1 != len(set(ls)):
-        raise ValueError('a.shape, ws and ss must all have the same length. They were %s' % str(ls))
+        raise ValueError(
+            'a.shape, ws and ss must all have the same length.' +
+            ' They were %s' % str(ls))
 
     # ensure that ws is smaller than a in every dimension
     if np.any(ws > shape):
@@ -3120,7 +3132,9 @@ def split_dataset(X, Y, opts=default_splitopts, do_debug=True):
     T, N = X.shape
     P = Y.shape[1]
     if opts['bins_after'] > 0 and opts['bins_before'] > 0:
-        assert opts['bins_current'] == 1, 'Invalid options: bins_before>0 & bins_after>0 but bins_current==0 !!'
+        err = ('Invalid options: bins_before>0 & bins_after>0' +
+               ' but bins_current==0 !!')
+        assert opts['bins_current'] == 1, err
     # get the full window size
     window_size = opts['bins_before'] + 1 + opts['bins_after']
 
@@ -3128,9 +3142,11 @@ def split_dataset(X, Y, opts=default_splitopts, do_debug=True):
         opts['train_range'] = [0, 0.7]
         opts['test_range'] = [0.7, 0.85]
         opts['valid_range'] = [0.85, 1]
-        get_ix = lambda x: np.arange(
-            np.round(x[0]*T)+opts['bins_before'],
-            np.round(x[1]*T)-opts['bins_after']).astype(np.int)
+
+        def get_ix(x):
+            return np.arange(np.round(x[0]*T)+opts['bins_before'],
+                             np.round(
+                                 x[1]*T)-opts['bins_after']).astype(np.int)
         train_ix = get_ix(opts['train_range'])-opts['bins_before']
         test_ix = get_ix(opts['test_range'])-opts['bins_before']
         valid_ix = get_ix(opts['valid_range'])-opts['bins_before']
@@ -3151,7 +3167,6 @@ def split_dataset(X, Y, opts=default_splitopts, do_debug=True):
         uY_train = Y[np.where(train_ix)[0]].mean(0)
 
     print('Max X {}'.format(np.max(X)))
-
 
     # Use stride tricks to get the windowed data.
     # In particular, sliding_window with these parameters
@@ -3248,10 +3263,15 @@ def split_dataset_randtime(X, Y, opts=default_splitopts):
     T, N = X.shape
     P = Y.shape[1]
     if opts['bins_after'] > 0 and opts['bins_before'] > 0:
-        assert opts['bins_current'] == 1, 'Invalid options: bins_before>0 & bins_after>0 but bins_current==0 !!'
+        err = ('Invalid options: bins_before>0 &' +
+               ' bins_after>0 but bins_current==0 !!')
+        assert opts['bins_current'] == 1, err
     # get the full window size
     window_size = opts['bins_before'] + 1 + opts['bins_after']
-    get_N = lambda x: np.round((x[1]-x[0])*T).astype(int)
+
+    def get_N(x):
+        return np.round((x[1]-x[0])*T).astype(int)
+
     remaining_ix = np.arange(opts['bins_before'],
                              X.shape[0]-opts['bins_after']-2)
     train_ix = np.random.choice(remaining_ix,
