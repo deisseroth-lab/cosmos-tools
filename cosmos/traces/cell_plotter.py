@@ -180,7 +180,6 @@ class CellPlotter:
         :return:
         """
 
-        print(show_footprints)
         if ax is None:
             fig = plt.figure(figsize=(10, 10))
             ax = fig.add_subplot(111)

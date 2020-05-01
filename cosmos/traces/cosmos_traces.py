@@ -61,6 +61,7 @@ class CosmosTraces:
         self.fig_save_path = os.path.join(dataset_dict['fig_save_dir'],
                                           dataset_dict['date'],
                                           dataset_dict['name'])
+        os.makedirs(self.fig_save_path, exist_ok=True)
 
         # Load up the output from CosmosDataset.saveMerged() (an HDF5 file).
         print('(1/3) Loading trace data.')

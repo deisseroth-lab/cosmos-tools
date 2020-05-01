@@ -355,7 +355,7 @@ class BpodDataset:
         print('Saving to: ', save_path)
         plt.savefig(save_path)
 
-    def plot_mean_lick_rates(self, which_trials, ax=None):
+    def plot_mean_lick_rates(self, which_trials, ax=None, xlims=None):
         """
         Overlay the lick rate to each spout for a provided
         set of trials.
@@ -376,6 +376,9 @@ class BpodDataset:
             plt.ylabel('Lick rate')
             plt.xlabel('Time [s]')
         plt.legend()
+        if xlims is not None:
+            plt.gca().set_xlim(xlims)
+        plt.title('Mean lick rate')
 
     def plot_lick_matrix(self, fig=None, dilation_width=10):
         """
