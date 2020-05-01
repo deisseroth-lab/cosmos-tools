@@ -54,7 +54,7 @@ then
 ## Additional installation notes
 
 ###### Note: There is a small possibility that due to a certain quirk in loading ome.tif files in import_raw_cosmos_data.py, you may need to use python2 for that script. It is possible the library call to load the files has now been properly upgraded for python3 and this is irrelevant. If it is necessary, you can likely just call python2 within the cosmos3 environment, or start a new environment (this has not been very well tested) with 
-`conda env create --file install_stuff/cosmos2requirements.yml -n cosmos2 python=2.7`
+`conda env create --file install_utils/cosmos2requirements.yml -n cosmos2 python=2.7`
 
 `source activate cosmos2`
 
