@@ -67,15 +67,15 @@ then
 
 1) Use `import_raw_cosmos_data.py`, following the directions at the top of that script. This crops the dual-lenslet ROIs, extracts timing information from the synchronization LED, uses CNMF_E to extract neural sources (requires MATLAB), and enables manual atlas alignment.
 
-2) Then use the interactive jupyter notebook: `ipynb/processing_notebooks/trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
+2) Then use the interactive jupyter notebook: `notebooks/processing_notebooks/trace_merge_script.ipynb` to align and merge traces from the different lenslets, quality control the extract sources, and save out an .h5 file containing merged traces that will be used for all further analyses of the dataset.
 
-3) You can then run `ipynb/processing_notebooks/quickly_assess_merged_traces.ipynb` to quickly assess the sources and play with the traces. For general analysis, though, move the merged_traces.h5 file from processedData to ~/Dropbox/cosmos_data/[date]/[session_name]/, and add the relevant information about the session to cosmos.params.trace_analyze_params.py
+3) You can then run `notebooks/processing_notebooks/quickly_assess_merged_traces.ipynb` to quickly assess the sources and play with the traces. For general analysis, though, move the merged_traces.h5 file from processedData to ~/Dropbox/cosmos_data/[date]/[session_name]/, and add the relevant information about the session to cosmos.params.trace_analyze_params.py
 
 
 
 ### Importing intrinsic imaging movies for atlas alignment:
 
-1) See `ipynb/processing_notebooks/intrinsic_imaging_alignment.ipynb`
+1) See `notebooks/processing_notebooks/intrinsic_imaging_alignment.ipynb`
 
 2) After extracting phase map from step 1, you can manually overlay the phase map with the the image that contains vasculature. This alignment of PM/V1 boundary can then be used to precisely align already-imported COSMOS data, using `scripts/adjust_atlas.py`
 
@@ -87,8 +87,8 @@ then
 `scripts/batch_cnmf_2p.py`
 
 2) Analyzing orientation selective visual grating stimulation.
-`ipynb/primary_notebooks/fig_visual_stimulation_two_photon.ipynb`, 
-`ipynb/primary_notebooks/fig_visual_stimulation_cosmos.ipynb`, 
+`notebooks/primary_notebooks/fig_visual_stimulation_two_photon.ipynb`, 
+`notebooks/primary_notebooks/fig_visual_stimulation_cosmos.ipynb`, 
 
 ### Analyzing COSMOS traces from lick-to-target task and generating figures:
 
@@ -96,29 +96,29 @@ then
 `ipynb/primary_notebooks/trace_analyze_script_ik.ipynb`
 
 #### Decode behavior from neural activity.
-`ipynb/primary_notebooks/classification_analysis.ipynb`
+`notebooks/primary_notebooks/classification_analysis.ipynb`
 
 #### Assign neural sources to task-related classes
-`ipynb/primary_notebooks/task_class_assignment.ipynb`
-`ipynb/primary_notebooks/fig_cluster_summary_with_mr2`
+`notebooks/primary_notebooks/task_class_assignment.ipynb`
+`notebooks/primary_notebooks/fig_cluster_summary_with_mr2`
 
 #### Trace summary figure
-`ipynb/primary_notebooks/fig_trace_summary.ipynb`
+`notebooks/primary_notebooks/fig_trace_summary.ipynb`
 
 #### Optics summary
-`ipynb/primary_notebooks/fig_optics.ipynb`
+`notebooks/primary_notebooks/fig_optics.ipynb`
 
 #### Characterization of COSMOS vs. macroscope
-`ipynb/primary_notebooks/fig_macroscope_comparison.ipynb`
+`notebooks/primary_notebooks/fig_macroscope_comparison.ipynb`
 
 #### Lick decoding
-`ipynb/primary_notebooks/fig_classification_summary.ipynb`
+`notebooks/primary_notebooks/fig_classification_summary.ipynb`
 
 #### VGAT optogenetic inhibition
-`ipynb/primary_notebooks/vgat_inhibition_analysis.ipynb`
+`notebooks/primary_notebooks/vgat_inhibition_analysis.ipynb`
 
 #### Unaveraged vs. trial-averaged correlation 
-`ipynb/fig_cluster_summary_SINGLE_TRIAL` 
+`notebooks/fig_cluster_summary_SINGLE_TRIAL` 
 
 #### Optics simulations
 `matlab/scripts/trace_analysis_spont.m` (for estimating background and signal photons) 
