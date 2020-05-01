@@ -126,6 +126,7 @@ then
 
 ## Reference:
 **Please cite this paper when you use COSMOS in your research. Thanks!**
+
 Kauvar IV*, Machado TA*, et al. Cortical observation by synchronous multifocal optical sampling reveals widespread population encoding of actions. Neuron 2020.
 
 ## License
