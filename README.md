@@ -135,6 +135,7 @@ Copyright 2020 Isaac Kauvar and Tim Machado
 
 ## General notes:
 To run jupyter notebooks, on a remote computer, go to top directory and run:
+
 `jupyter notebook --port=5558 --ip=* --no-browser`
 
 See jupyter documentation to learn how to set up a password so that this is secure. 
